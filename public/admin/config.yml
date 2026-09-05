@@ -1,0 +1,177 @@
+# ============================================================================
+# FAHRZEUGVERWALTUNG — Konfiguration der Weboberfläche unter /admin
+# ----------------------------------------------------------------------------
+# Diese Datei legt fest, welche Felder im Bearbeitungsformular erscheinen.
+# Sie muss zu src/content.config.ts passen — beide beschreiben dieselben Daten.
+#
+# ⚠️  VOR DEM ERSTEN LOGIN AUSFÜLLEN: bei "repo" euer GitHub-Repository
+#     im Format benutzername/projektname eintragen.
+# ============================================================================
+
+backend:
+  name: github
+  repo: BENUTZERNAME/acs-website # ← HIER EINTRAGEN
+  branch: main
+  # Beschriftung des Login-Knopfs
+  auth_type: pkce
+  app_id: ""                     # ← wird beim Einrichten ergänzt
+
+# Änderungen gehen direkt auf die Seite (kein Entwurfs-Workflow).
+publish_mode: simple
+
+# Sprache der Oberfläche
+locale: de
+
+media_folder: public/uploads
+public_folder: /uploads
+
+collections:
+  # ------------------------------------------------------------------ Bestand
+  - name: vehicles
+    label: Fahrzeuge im Bestand
+    label_singular: Fahrzeug
+    folder: src/content/vehicles
+    extension: md
+    format: yaml-frontmatter
+    create: true
+    delete: true
+    identifier_field: model
+    slug: "{{make}}-{{model}}-{{year}}"
+    summary: "{{make}} {{model}} — {{year}}, {{km}} km"
+    media_folder: "/public/vehicles/{{slug}}"
+    public_folder: "/vehicles/{{slug}}"
+    sortable_fields: [year, km, price, make]
+    fields:
+      - { name: make, label: Marke, widget: string, hint: "z. B. Porsche" }
+      - { name: model, label: Modell, widget: string, hint: "z. B. 911" }
+      - { name: variant, label: Ausführung, widget: string, required: false, hint: "z. B. 992 Carrera 4S" }
+      - { name: year, label: Jahrgang, widget: number, value_type: int, min: 1900 }
+      - { name: km, label: Kilometerstand, widget: number, value_type: int, min: 0, hint: "Nur die Zahl, ohne 'km'" }
+      - name: price
+        label: Preis in CHF
+        widget: number
+        value_type: int
+        required: false
+        hint: "Leer lassen für 'Preis auf Anfrage'"
+      - name: fuel
+        label: Treibstoff
+        widget: select
+        options:
+          - { label: Benzin, value: petrol }
+          - { label: Diesel, value: diesel }
+          - { label: Hybrid, value: hybrid }
+          - { label: Elektro, value: electric }
+      - name: gearbox
+        label: Getriebe
+        widget: select
+        options:
+          - { label: Automat, value: automatic }
+          - { label: Handschaltung, value: manual }
+      - { name: power, label: Leistung in PS, widget: number, value_type: int, min: 1 }
+      - { name: drive, label: Antrieb, widget: string, hint: "z. B. Allrad, Vorderrad, quattro" }
+      - name: category
+        label: Kategorie
+        widget: select
+        hint: "Steuert die Filter auf der Fahrzeugseite"
+        options:
+          - { label: "Sport & Luxus", value: exotic }
+          - { label: Premium, value: premium }
+          - { label: Occasionen, value: everyday }
+      - name: featured
+        label: Auf Startseite hervorheben
+        widget: boolean
+        default: false
+        required: false
+      - { name: mfk, label: MFK, widget: string, required: false, hint: "z. B. 'Neu ab MFK' oder '05.2027'" }
+
+      - name: colour
+        label: Farbe
+        widget: object
+        fields:
+          - { name: de, label: Deutsch, widget: string }
+          - { name: en, label: Englisch, widget: string }
+
+      - name: teaser
+        label: Kurztext (auf der Übersichtskachel)
+        widget: object
+        fields:
+          - { name: de, label: Deutsch, widget: text }
+          - { name: en, label: Englisch, widget: text }
+
+      - name: description
+        label: Beschreibung (ein Eintrag = ein Absatz)
+        widget: object
+        fields:
+          - { name: de, label: Deutsch, widget: list, field: { name: absatz, label: Absatz, widget: text } }
+          - { name: en, label: Englisch, widget: list, field: { name: paragraph, label: Paragraph, widget: text } }
+
+      - name: highlights
+        label: Ausstattung & Highlights
+        widget: object
+        fields:
+          - { name: de, label: Deutsch, widget: list, field: { name: punkt, label: Punkt, widget: string } }
+          - { name: en, label: Englisch, widget: list, field: { name: item, label: Item, widget: string } }
+
+      - name: photos
+        label: Fotos
+        widget: list
+        required: false
+        hint: "Das erste Bild ist das Titelbild. Reihenfolge per Ziehen ändern."
+        field: { name: bild, label: Bild, widget: image }
+
+  # ----------------------------------------------------------------- Verkauft
+  - name: sold
+    label: Verkaufte Fahrzeuge (Archiv)
+    label_singular: Verkauftes Fahrzeug
+    folder: src/content/sold
+    extension: md
+    format: yaml-frontmatter
+    create: true
+    delete: true
+    identifier_field: model
+    slug: "{{make}}-{{model}}-{{year}}"
+    summary: "{{ref}} — {{make}} {{model}} (verkauft {{soldYear}})"
+    media_folder: "/public/sold/{{slug}}"
+    public_folder: "/sold/{{slug}}"
+    sortable_fields: [soldYear, ref, make]
+    fields:
+      - { name: ref, label: Referenznummer, widget: string, hint: "z. B. REF. 043 — fortlaufend" }
+      - { name: make, label: Marke, widget: string }
+      - { name: model, label: Modell, widget: string }
+      - { name: variant, label: Ausführung, widget: string, required: false }
+      - { name: year, label: Jahrgang, widget: number, value_type: int, min: 1900 }
+      - { name: soldYear, label: Verkauft im Jahr, widget: number, value_type: int, min: 1900, hint: "Gruppiert das Archiv" }
+      - name: wide
+        label: Doppelt breite Kachel
+        widget: boolean
+        default: false
+        required: false
+        hint: "Für besondere Fahrzeuge"
+
+      - name: colour
+        label: Farbe
+        widget: object
+        fields:
+          - { name: de, label: Deutsch, widget: string }
+          - { name: en, label: Englisch, widget: string }
+
+      - name: destination
+        label: Verkauft nach
+        widget: object
+        required: false
+        fields:
+          - { name: de, label: Deutsch, widget: string, hint: "z. B. Verkauft nach Deutschland" }
+          - { name: en, label: Englisch, widget: string }
+
+      - name: note
+        label: Kurzbeschreibung
+        widget: object
+        fields:
+          - { name: de, label: Deutsch, widget: text }
+          - { name: en, label: Englisch, widget: text }
+
+      - name: photos
+        label: Fotos
+        widget: list
+        required: false
+        field: { name: bild, label: Bild, widget: image }

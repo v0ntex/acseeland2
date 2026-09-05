@@ -1,0 +1,270 @@
+---
+import Icon from './Icon.astro';
+import { useTranslations } from '../i18n/utils';
+import { site } from '../data/site';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  /** 'contact' = general message · 'sourcing' = wanted-vehicle brief */
+  variant?: 'contact' | 'sourcing';
+  /** Pre-fills the subject, used on vehicle detail pages */
+  subject?: string;
+  id?: string;
+}
+const { lang, variant = 'contact', subject = '', id = 'contact-form' } = Astro.props;
+const t = useTranslations(lang);
+const sourcing = variant === 'sourcing';
+---
+<form
+  class="acs-form"
+  id={id}
+  novalidate
+  data-variant={variant}
+  data-email={site.email}
+  data-endpoint={site.formEndpoint ?? ''}
+  action={site.formEndpoint ?? undefined}
+  method={site.formEndpoint ? 'POST' : undefined}
+>
+  <!-- Error summary: focused after a failed submit, links to each bad field -->
+  <div class="form-summary" id={`${id}-summary`} role="alert" tabindex="-1" hidden>
+    <p class="form-summary__title">{t('form.errorSummary')}</p>
+    <ul class="form-summary__list"></ul>
+  </div>
+
+  <div class="form-grid">
+    <div class="field">
+      <label for={`${id}-name`}>{t('form.name')} <span class="req" aria-hidden="true">*</span></label>
+      <input type="text" id={`${id}-name`} name="name" autocomplete="name" required
+             aria-describedby={`${id}-name-err`} />
+      <p class="field-err" id={`${id}-name-err`} hidden></p>
+    </div>
+
+    <div class="field">
+      <label for={`${id}-email`}>{t('form.email')} <span class="req" aria-hidden="true">*</span></label>
+      <input type="email" id={`${id}-email`} name="email" autocomplete="email" inputmode="email" required
+             aria-describedby={`${id}-email-err`} />
+      <p class="field-err" id={`${id}-email-err`} hidden></p>
+    </div>
+
+    <div class="field">
+      <label for={`${id}-phone`}>{t('form.phoneOptional')}</label>
+      <input type="tel" id={`${id}-phone`} name="phone" autocomplete="tel" inputmode="tel" />
+    </div>
+
+    {sourcing ? (
+      <>
+        <div class="field">
+          <label for={`${id}-budget`}>{t('form.budget')}</label>
+          <input type="text" id={`${id}-budget`} name="budget" inputmode="numeric" placeholder="80’000 – 120’000" />
+        </div>
+        <div class="field">
+          <label for={`${id}-make`}>{t('form.vehicleMake')} <span class="req" aria-hidden="true">*</span></label>
+          <input type="text" id={`${id}-make`} name="make" required aria-describedby={`${id}-make-err`} />
+          <p class="field-err" id={`${id}-make-err`} hidden></p>
+        </div>
+        <div class="field">
+          <label for={`${id}-model`}>{t('form.vehicleModel')}</label>
+          <input type="text" id={`${id}-model`} name="model" />
+        </div>
+        <div class="field field--full">
+          <label for={`${id}-timeframe`}>{t('form.timeframe')}</label>
+          <input type="text" id={`${id}-timeframe`} name="timeframe" />
+        </div>
+      </>
+    ) : (
+      <div class="field field--full">
+        <label for={`${id}-subject`}>{t('form.subject')}</label>
+        <input type="text" id={`${id}-subject`} name="subject" value={subject} />
+      </div>
+    )}
+
+    <div class="field field--full">
+      <label for={`${id}-message`}>
+        {sourcing ? t('form.details') : t('form.message')} <span class="req" aria-hidden="true">*</span>
+      </label>
+      <textarea id={`${id}-message`} name="message" rows={sourcing ? 5 : 6} required
+                aria-describedby={`${id}-message-hint ${id}-message-err`}></textarea>
+      <p class="field-hint" id={`${id}-message-hint`}>
+        {sourcing ? t('form.detailsHint') : t('form.privacyNote')}
+      </p>
+      <p class="field-err" id={`${id}-message-err`} hidden></p>
+    </div>
+  </div>
+
+  <div class="form-foot">
+    <button type="submit" class="btn btn--red">
+      {sourcing ? t('form.submitEnquiry') : t('form.submit')}
+      <Icon name="arrow-right" size={17} />
+    </button>
+    {!site.formEndpoint && <p class="form-note">{t('form.opensMail')}</p>}
+  </div>
+
+  <!-- Strings the script needs, kept out of the markup flow -->
+  <span class="visually-hidden" data-msg-required={t('form.errorRequired')} data-msg-email={t('form.errorEmail')}></span>
+</form>
+
+<style>
+  .acs-form { display: grid; gap: var(--space-m); }
+
+  .form-grid { display: grid; gap: var(--space-m); }
+  @media (min-width: 640px) { .form-grid { grid-template-columns: repeat(2, 1fr); } }
+  .field--full { grid-column: 1 / -1; }
+
+  .field { display: grid; gap: 0.45rem; }
+  .field label {
+    font-size: var(--step--1);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .req { color: var(--acs-red); }
+
+  .field input, .field textarea {
+    width: 100%;
+    min-height: 3rem;                    /* ≥44px touch target */
+    padding: 0.8rem 1rem;
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 1rem;                     /* 16px — stops iOS zooming on focus */
+    transition: border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
+  }
+  .field textarea { resize: vertical; line-height: 1.6; }
+  .field input::placeholder, .field textarea::placeholder { color: #6b6b6b; }
+  .field input:hover, .field textarea:hover { border-color: var(--line-strong); }
+  .field input:focus, .field textarea:focus {
+    outline: none;
+    border-color: var(--acs-red);
+    background: var(--bg-raised-2);
+    box-shadow: 0 0 0 3px rgba(254, 51, 53, 0.18);
+  }
+  .field input[aria-invalid='true'], .field textarea[aria-invalid='true'] { border-color: var(--acs-red); }
+
+  .field-hint { font-size: var(--step--1); color: var(--text-subtle); line-height: 1.5; }
+
+  /* Errors carry an icon + text, never colour alone */
+  .field-err {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4em;
+    font-size: var(--step--1);
+    font-weight: 600;
+    color: var(--acs-red);
+  }
+  .field-err::before { content: '!'; display: inline-grid; place-items: center; width: 1.05em; height: 1.05em; margin-top: 0.15em; border: 1px solid currentColor; border-radius: 50%; font-size: 0.75em; flex: none; }
+  .field-err[hidden] { display: none; }
+
+  .form-summary {
+    padding: var(--space-s) var(--space-m);
+    border: 1px solid var(--acs-red);
+    border-left-width: 3px;
+    border-radius: var(--radius);
+    background: rgba(254, 51, 53, 0.07);
+  }
+  .form-summary[hidden] { display: none; }
+  .form-summary__title { font-weight: 700; color: var(--acs-red); font-size: var(--step--1); }
+  .form-summary__list { margin: 0.5rem 0 0; padding-left: 1.1rem; display: grid; gap: 0.3rem; }
+  .form-summary__list a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; font-size: var(--step--1); }
+  .form-summary__list a:hover { color: var(--acs-red); }
+
+  .form-foot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-s); }
+  .form-note { font-size: var(--step--1); color: var(--text-subtle); max-width: 34ch; }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>('form.acs-form').forEach((form) => {
+    const strings = form.querySelector<HTMLElement>('[data-msg-required]')!;
+    const MSG_REQUIRED = strings.dataset.msgRequired!;
+    const MSG_EMAIL = strings.dataset.msgEmail!;
+    const summary = form.querySelector<HTMLElement>('.form-summary')!;
+    const summaryList = summary.querySelector('ul')!;
+    const endpoint = form.dataset.endpoint || '';
+    const to = form.dataset.email!;
+
+    const fields = () => [...form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input, textarea')];
+
+    const errorFor = (f: HTMLInputElement | HTMLTextAreaElement): string | null => {
+      const value = f.value.trim();
+      if (f.required && !value) return MSG_REQUIRED;
+      if (f.type === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) return MSG_EMAIL;
+      return null;
+    };
+
+    const showError = (f: HTMLInputElement | HTMLTextAreaElement, msg: string | null) => {
+      const box = document.getElementById(`${f.id}-err`);
+      if (msg) {
+        f.setAttribute('aria-invalid', 'true');
+        if (box) { box.textContent = msg; box.hidden = false; }
+      } else {
+        f.removeAttribute('aria-invalid');
+        if (box) { box.textContent = ''; box.hidden = true; }
+      }
+    };
+
+    /* Validate on blur, then keep correcting live once a field has errored. */
+    fields().forEach((f) => {
+      f.addEventListener('blur', () => showError(f, errorFor(f)));
+      f.addEventListener('input', () => {
+        if (f.getAttribute('aria-invalid') === 'true') showError(f, errorFor(f));
+      });
+    });
+
+    form.addEventListener('submit', (e) => {
+      const bad: { field: HTMLElement; msg: string }[] = [];
+      fields().forEach((f) => {
+        const msg = errorFor(f);
+        showError(f, msg);
+        if (msg) bad.push({ field: f, msg });
+      });
+
+      if (bad.length) {
+        e.preventDefault();
+        summaryList.innerHTML = '';
+        for (const { field, msg } of bad) {
+          const label = form.querySelector(`label[for="${field.id}"]`)?.textContent?.replace('*', '').trim() ?? field.id;
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = `#${field.id}`;
+          a.textContent = `${label}: ${msg}`;
+          a.addEventListener('click', (ev) => { ev.preventDefault(); field.focus(); });
+          li.appendChild(a);
+          summaryList.appendChild(li);
+        }
+        summary.hidden = false;
+        summary.focus();
+        return;
+      }
+
+      summary.hidden = true;
+      if (endpoint) return; // real POST endpoint handles it
+
+      /* No backend configured: hand the message to the user's mail client. */
+      e.preventDefault();
+      const data = new FormData(form);
+      const get = (k: string) => String(data.get(k) ?? '').trim();
+      const sourcing = form.dataset.variant === 'sourcing';
+
+      const subject = sourcing
+        ? `Fahrzeuganfrage / Vehicle request — ${get('make')} ${get('model')}`.trim()
+        : get('subject') || 'Website — Kontakt / Contact';
+
+      const lines = [
+        `Name: ${get('name')}`,
+        `E-Mail: ${get('email')}`,
+        get('phone') && `Telefon: ${get('phone')}`,
+        sourcing && `Marke: ${get('make')}`,
+        sourcing && get('model') && `Modell: ${get('model')}`,
+        sourcing && get('budget') && `Budget: CHF ${get('budget')}`,
+        sourcing && get('timeframe') && `Zeitrahmen: ${get('timeframe')}`,
+        '',
+        get('message'),
+      ].filter(Boolean);
+
+      window.location.href =
+        `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join('\n'))}`;
+    });
+  });
+</script>

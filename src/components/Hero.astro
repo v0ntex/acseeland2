@@ -1,0 +1,253 @@
+---
+import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
+import heroImg from '../assets/hero-veyron.jpg';
+import { useTranslations, localePath, formatNumber } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
+import { site } from '../data/site';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const p = localePath(lang);
+const years = new Date().getFullYear() - site.founded;
+
+/* Kennzahlen. Einträge ohne Wert werden weggelassen, statt geraten zu werden. */
+const stats = [
+  { label: t('stats.years'), value: `${years}+`, big: true },
+  site.vehiclesSold
+    ? { label: t('stats.sold'), value: `${formatNumber(site.vehiclesSold)}+`, big: true }
+    : null,
+  { label: t('stats.viewing'), value: t('stats.viewingValue'), big: false },
+  { label: t('stats.region'), value: t('stats.regionValue'), big: false },
+].filter(Boolean) as { label: string; value: string; big: boolean }[];
+---
+<section class="hero">
+  <div class="hero__media">
+    <Image
+      src={heroImg}
+      alt="Bugatti Veyron 16.4 vor dem Auto Center Seeland in Biel/Bienne"
+      widths={[640, 1024, 1600, 2200, 2560]}
+      sizes="100vw"
+      format="webp"
+      quality={72}
+      loading="eager"
+      fetchpriority="high"
+    />
+    <div class="hero__scrim" aria-hidden="true"></div>
+  </div>
+
+  <div class="hero__content container">
+    <p class="eyebrow hero__eyebrow">{t('hero.eyebrow', { year: site.founded })}</p>
+
+    <h1 class="hero__title">
+      <span class="hero__line">{t('hero.title.1')}</span>
+      <span class="hero__line">{t('hero.title.2')}</span>
+      <span class="hero__line hero__line--accent">{t('hero.title.3')}</span>
+    </h1>
+
+    <p class="hero__lead">{t('hero.lead')}</p>
+
+    <div class="hero__actions">
+      <a href={p('vehicles')} class="btn">{t('hero.cta')}<Icon name="arrow-right" size={17} /></a>
+      <a href={p('contact')} class="btn btn--ghost">{t('hero.cta2')}</a>
+    </div>
+  </div>
+
+  <div class="hero__bar">
+    <div class="container hero__bar-inner">
+      <dl class="hero__stats num">
+        {stats.map((s) => (
+          <div>
+            <dt>{s.label}</dt>
+            <dd class:list={[!s.big && 'hero__stat-text']}>{s.value}</dd>
+          </div>
+        ))}
+      </dl>
+      <a href="#intro" class="hero__scroll">
+        <span>{t('hero.scroll')}</span>
+        <Icon name="arrow-down" size={16} />
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 100svh;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .hero__media { position: absolute; inset: 0; z-index: -2; }
+  .hero__media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 68% 62%;
+    animation: hero-settle 2400ms var(--ease-out) both;
+  }
+  @keyframes hero-settle {
+    from { transform: scale(1.07); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+  }
+
+  /* Scrim tuned against THIS photograph: darkness is concentrated top-left
+     where the headline sits, and pulled back over the lower right so the car
+     stays visible. Measured on the rendered frame — text clears 4.5:1. */
+  .hero__scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      /* keeps the header legible over the pale building */
+      linear-gradient(to bottom, rgba(10,10,10,0.72) 0%, rgba(10,10,10,0.18) 14%, transparent 30%),
+      /* text column */
+      linear-gradient(to right, rgba(10,10,10,0.90) 0%, rgba(10,10,10,0.62) 30%, rgba(10,10,10,0.18) 58%, rgba(10,10,10,0.02) 78%),
+      /* just enough floor to seat the stats bar */
+      linear-gradient(to top, rgba(10,10,10,0.78) 0%, rgba(10,10,10,0.22) 18%, transparent 40%);
+  }
+  /* Portrait: reframe onto the car and darken the lower half, where the
+     headline and copy sit, so the crop still shows the subject. */
+  @media (max-width: 767px) {
+    .hero__media :global(img) { object-position: 58% 72%; }
+    /* Weighted to the middle band, where the eyebrow and headline sit over
+       the pale wall — the bottom stays lighter so the car still reads. */
+    .hero__scrim {
+      background: linear-gradient(to bottom,
+        rgba(10,10,10,0.60) 0%,
+        rgba(10,10,10,0.34) 12%,
+        rgba(10,10,10,0.80) 26%,
+        rgba(10,10,10,0.82) 52%,
+        rgba(10,10,10,0.66) 70%,
+        rgba(10,10,10,0.62) 100%);
+    }
+  }
+
+  .hero__content {
+    padding-top: calc(6rem + env(safe-area-inset-top));
+    padding-bottom: var(--space-l);
+    max-width: var(--container);
+  }
+  .hero__eyebrow { animation: rise 700ms var(--ease-out) 300ms both; }
+
+  .hero__title {
+    margin-top: var(--space-m);
+    /* Min sized so "Aussergewöhnliche" fits a 375px viewport on one line. */
+    font-size: clamp(2.05rem, 1.05rem + 4.3vw, 4.6rem);
+    font-weight: 800;
+    letter-spacing: -0.042em;
+    line-height: 1.0;
+    text-wrap: balance;
+  }
+  /* Only suppress wrapping once there is a wide text column to hold the
+     lines — on narrow screens the words must be free to wrap. */
+  @media (min-width: 1100px) {
+    .hero__title { text-wrap: nowrap; }
+  }
+  .hero__line { display: block; animation: rise 900ms var(--ease-out) both; }
+  .hero__line:nth-child(1) { animation-delay: 380ms; }
+  .hero__line:nth-child(2) { animation-delay: 470ms; }
+  .hero__line:nth-child(3) { animation-delay: 560ms; }
+  .hero__line--accent { color: var(--acs-red); }
+
+  .hero__lead {
+    margin-top: var(--space-m);
+    /* Sized so the paragraph clears the car on the right of the frame and the
+       whole hero (content + stats bar) still fits a 720px-tall viewport. */
+    max-width: 46ch;
+    font-size: var(--step-0);
+    font-weight: 300;
+    line-height: 1.6;
+    color: #d4d4d4;
+    animation: rise 900ms var(--ease-out) 680ms both;
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-top: var(--space-m);
+    animation: rise 900ms var(--ease-out) 800ms both;
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(26px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ------------------------------------------------------- Stats bar */
+  .hero__bar {
+    border-top: 1px solid var(--line);
+    background: rgba(10, 10, 10, 0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    animation: fade 900ms var(--ease-out) 950ms both;
+  }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+  .hero__bar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-m);
+    padding-block: var(--space-s);
+  }
+
+  .hero__stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-s) var(--space-m);
+    margin: 0;
+    flex: 1;
+  }
+  @media (min-width: 700px) { .hero__stats { grid-template-columns: repeat(4, auto); gap: var(--space-l); flex: none; } }
+
+  .hero__stats dt {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    margin-bottom: 0.25rem;
+  }
+  .hero__stats dd {
+    margin: 0;
+    font-size: var(--step-2);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .hero__stat-text { font-size: var(--step-0) !important; font-weight: 700 !important; letter-spacing: -0.01em !important; }
+
+  .hero__scroll {
+    display: none;
+    align-items: center;
+    gap: 0.6em;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    flex: none;
+    min-height: 2.75rem;
+    transition: color var(--dur) var(--ease-out);
+  }
+  .hero__scroll:hover { color: var(--acs-red); }
+  .hero__scroll svg { animation: nudge 2.4s var(--ease-in-out) infinite; }
+  @keyframes nudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+  @media (min-width: 900px) { .hero__scroll { display: inline-flex; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__media :global(img),
+    .hero__eyebrow, .hero__line, .hero__lead, .hero__actions, .hero__bar {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    .hero__scroll svg { animation: none; }
+  }
+</style>

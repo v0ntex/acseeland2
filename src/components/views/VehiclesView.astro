@@ -1,0 +1,287 @@
+---
+import Icon from '../Icon.astro';
+import VehicleCard from '../VehicleCard.astro';
+import { getVehicles } from '../../data/queries';
+import { useTranslations, localePath } from '../../i18n/utils';
+import type { Lang } from '../../i18n/ui';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const p = localePath(lang);
+
+const vehicles = await getVehicles();
+
+const categories = ['exotic', 'premium', 'everyday'] as const;
+const fuels = ['petrol', 'diesel', 'hybrid', 'electric'] as const;
+
+/* Only offer a filter chip if stock actually contains it. */
+const availableCats = categories.filter((c) => vehicles.some((v) => v.category === c));
+const availableFuels = fuels.filter((f) => vehicles.some((v) => v.fuel === f));
+---
+<div class="page-head">
+  <div class="container">
+    <p class="eyebrow">{t('nav.vehicles')}</p>
+    <h1 class="title-xl page-head__title">{t('vehicles.title')}</h1>
+    <p class="lead page-head__lead">{t('vehicles.lead')}</p>
+  </div>
+</div>
+
+<section class="section section--tight">
+  <div class="container">
+
+    <!-- ------------------------------------------------ Filters -->
+    <div class="filters" id="filters">
+      <div class="filter-group">
+        <h2 class="filter-label" id="cat-label">{t('filter.category')}</h2>
+        <div class="chips" role="group" aria-labelledby="cat-label">
+          <button type="button" class="chip is-on" data-filter="category" data-value="all" aria-pressed="true">
+            {t('filter.all')}
+          </button>
+          {availableCats.map((c) => (
+            <button type="button" class="chip" data-filter="category" data-value={c} aria-pressed="false">
+              {t(`filter.cat.${c}` as any)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <h2 class="filter-label" id="fuel-label">{t('filter.fuel')}</h2>
+        <div class="chips" role="group" aria-labelledby="fuel-label">
+          <button type="button" class="chip is-on" data-filter="fuel" data-value="all" aria-pressed="true">
+            {t('filter.all')}
+          </button>
+          {availableFuels.map((f) => (
+            <button type="button" class="chip" data-filter="fuel" data-value={f} aria-pressed="false">
+              {t(`filter.fuel.${f}` as any)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div class="filter-group filter-group--sort">
+        <label class="filter-label" for="sort">{t('filter.sort')}</label>
+        <select id="sort" class="select">
+          <option value="newest">{t('filter.sort.newest')}</option>
+          <option value="priceAsc">{t('filter.sort.priceAsc')}</option>
+          <option value="priceDesc">{t('filter.sort.priceDesc')}</option>
+          <option value="kmAsc">{t('filter.sort.kmAsc')}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="results-bar">
+      <p
+        class="results-count num"
+        id="result-count"
+        role="status"
+        aria-live="polite"
+        data-one={t('vehicles.count.one')}
+        data-other={t('vehicles.count.other')}
+      ></p>
+      <button type="button" class="link-arrow reset-btn" id="reset-filters" hidden>
+        <Icon name="x" size={15} />{t('filter.reset')}
+      </button>
+    </div>
+
+    <!-- ------------------------------------------------ Grid -->
+    <div class="grid grid--3" id="vehicle-grid">
+      {vehicles.map((v, i) => <VehicleCard vehicle={v} lang={lang} index={i} />)}
+    </div>
+
+    <!-- ------------------------------------------------ Empty state -->
+    <div class="empty" id="empty-state" hidden>
+      <img src="/brand/acs-emblem-white.svg" alt="" width="64" height="31" class="empty__mark" />
+      <p class="empty__text">{t('vehicles.empty')}</p>
+      <a href={p('sourcing')} class="btn btn--red">{t('vehicles.emptyCta')}<Icon name="arrow-right" size={17} /></a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .page-head {
+    padding-top: calc(7.5rem + env(safe-area-inset-top));
+    padding-bottom: var(--space-l);
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+  }
+  @media (min-width: 1024px) { .page-head { padding-top: 10rem; padding-bottom: var(--space-xl); } }
+  .page-head__title { margin-top: var(--space-s); max-width: 16ch; }
+  .page-head__lead { margin-top: var(--space-s); max-width: 52ch; }
+
+  /* -------------------------------------------------------- Filters */
+  .filters {
+    display: grid;
+    gap: var(--space-m);
+    padding-bottom: var(--space-m);
+  }
+  @media (min-width: 1024px) {
+    .filters { grid-template-columns: auto auto 1fr; align-items: start; gap: var(--space-l); }
+    .filter-group--sort { justify-self: end; }
+  }
+
+  .filter-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    margin-bottom: var(--space-xs);
+  }
+
+  /* Chips wrap before they shrink — labels are never truncated */
+  .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+  .chip {
+    min-height: 2.75rem;                /* ≥44px touch target */
+    padding: 0.6rem 1rem;
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    transition: border-color var(--dur) var(--ease-out),
+                color var(--dur) var(--ease-out),
+                background var(--dur) var(--ease-out);
+  }
+  .chip:hover { border-color: var(--line-strong); color: var(--text); }
+  /* Active state = fill + weight, not colour alone */
+  .chip.is-on {
+    background: var(--acs-white);
+    border-color: var(--acs-white);
+    color: var(--text-inverse);
+    font-weight: 700;
+  }
+
+  .select {
+    min-height: 2.75rem;
+    padding: 0.6rem 2.4rem 0.6rem 1rem;
+    background-color: transparent;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a3a3a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.85rem center;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: var(--step--1);
+    font-weight: 600;
+    appearance: none;
+    cursor: pointer;
+    min-width: 14rem;
+  }
+  .select:hover { border-color: var(--line-strong); }
+  .select option { background: var(--bg-raised); color: var(--text); }
+
+  .results-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+    flex-wrap: wrap;
+    padding: var(--space-s) 0 var(--space-m);
+    border-top: 1px solid var(--line);
+  }
+  .results-count { font-size: var(--step--1); color: var(--text-subtle); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+  .reset-btn { background: none; border: 0; padding: 0.35rem 0; }
+  .reset-btn[hidden] { display: none; }
+
+  /* Hidden by filtering — display:none so the grid reflows cleanly */
+  :global(#vehicle-grid > .is-filtered-out) { display: none; }
+
+  .empty {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-m);
+    text-align: center;
+    padding: var(--space-2xl) var(--space-m);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .empty[hidden] { display: none; }
+  .empty__mark { opacity: 0.35; }
+  .empty__text { color: var(--text-muted); max-width: 46ch; }
+</style>
+
+<script>
+  const grid = document.getElementById('vehicle-grid');
+  if (grid) {
+    const cards = [...grid.querySelectorAll<HTMLElement>('.vcard')];
+    const chips = [...document.querySelectorAll<HTMLButtonElement>('.chip')];
+    const sortSel = document.getElementById('sort') as HTMLSelectElement;
+    const countEl = document.getElementById('result-count')!;
+    const emptyEl = document.getElementById('empty-state')!;
+    const resetBtn = document.getElementById('reset-filters') as HTMLButtonElement;
+
+    const labels = {
+      one: countEl.dataset.one ?? '',
+      other: countEl.dataset.other ?? '',
+    };
+    const state = { category: 'all', fuel: 'all' };
+
+    const num = (el: HTMLElement, key: string) => Number(el.dataset[key] || 0);
+
+    const apply = () => {
+      let shown = 0;
+      for (const card of cards) {
+        const ok =
+          (state.category === 'all' || card.dataset.category === state.category) &&
+          (state.fuel === 'all' || card.dataset.fuel === state.fuel);
+        card.classList.toggle('is-filtered-out', !ok);
+        if (ok) shown++;
+      }
+
+      /* Sort the visible cards by reordering with CSS `order`. */
+      const visible = cards.filter((c) => !c.classList.contains('is-filtered-out'));
+      const mode = sortSel.value;
+      visible.sort((a, b) => {
+        if (mode === 'priceAsc' || mode === 'priceDesc') {
+          // Cars without a price ("on request") always sort last.
+          const pa = a.dataset.price === '' ? Infinity : num(a, 'price');
+          const pb = b.dataset.price === '' ? Infinity : num(b, 'price');
+          if (pa === Infinity || pb === Infinity) return pa - pb;
+          return mode === 'priceAsc' ? pa - pb : pb - pa;
+        }
+        if (mode === 'kmAsc') return num(a, 'km') - num(b, 'km');
+        return num(b, 'year') - num(a, 'year');
+      });
+      visible.forEach((c, i) => (c.style.order = String(i)));
+
+      countEl.textContent = `${shown} ${shown === 1 ? labels.one : labels.other}`;
+      emptyEl.hidden = shown > 0;
+      resetBtn.hidden = state.category === 'all' && state.fuel === 'all';
+    };
+
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const group = chip.dataset.filter as 'category' | 'fuel';
+        state[group] = chip.dataset.value!;
+        chips
+          .filter((c) => c.dataset.filter === group)
+          .forEach((c) => {
+            const on = c === chip;
+            c.classList.toggle('is-on', on);
+            c.setAttribute('aria-pressed', String(on));
+          });
+        apply();
+      });
+    });
+
+    sortSel.addEventListener('change', apply);
+    resetBtn.addEventListener('click', () => {
+      state.category = 'all';
+      state.fuel = 'all';
+      chips.forEach((c) => {
+        const on = c.dataset.value === 'all';
+        c.classList.toggle('is-on', on);
+        c.setAttribute('aria-pressed', String(on));
+      });
+      apply();
+    });
+
+    apply();
+  }
+</script>

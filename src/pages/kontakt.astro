@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import View from '../components/views/ContactView.astro';
+import { useTranslations } from '../i18n/utils';
+
+const lang = 'de' as const;
+const t = useTranslations(lang);
+---
+<Base title={`${t('contact.title')} — Auto Center Seeland AG`} description={t('contact.lead')}>
+  <View lang={lang} />
+</Base>

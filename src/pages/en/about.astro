@@ -1,0 +1,12 @@
+---
+import Base from '../../layouts/Base.astro';
+import View from '../../components/views/AboutView.astro';
+import { site } from '../../data/site';
+import { useTranslations } from '../../i18n/utils';
+
+const lang = 'en' as const;
+const t = useTranslations(lang);
+---
+<Base title={`${t('about.title')} — Auto Center Seeland AG`} description={t('about.p1', { year: site.founded })}>
+  <View lang={lang} />
+</Base>

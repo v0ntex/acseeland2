@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { useTranslations, localePath } from '../i18n/utils';
+
+const lang = 'de' as const;
+const t = useTranslations(lang);
+const p = localePath(lang);
+---
+<Base title={`${t('notFound.title')} — Auto Center Seeland AG`} description={t('notFound.body')}>
+  <section class="nf">
+    <div class="container-narrow nf__inner">
+      <img src="/brand/acs-emblem-white.svg" alt="" width="80" height="39" class="nf__mark" />
+      <p class="nf__code num">404</p>
+      <h1 class="title-l">{t('notFound.title')}</h1>
+      <p class="nf__body">{t('notFound.body')}</p>
+      <div class="nf__actions">
+        <a href={p('home')} class="btn">{t('notFound.cta')}<Icon name="arrow-right" size={17} /></a>
+        <a href={p('vehicles')} class="btn btn--ghost">{t('nav.vehicles')}</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf { min-height: 78svh; display: grid; place-items: center; padding-block: var(--space-3xl) var(--space-2xl); }
+  .nf__inner { display: grid; justify-items: center; gap: var(--space-s); text-align: center; }
+  .nf__mark { opacity: 0.4; }
+  .nf__code { font-size: var(--step-2); font-weight: 800; letter-spacing: 0.2em; color: var(--acs-red); }
+  .nf__body { color: var(--text-muted); max-width: 42ch; }
+  .nf__actions { display: flex; flex-wrap: wrap; gap: var(--space-xs); justify-content: center; margin-top: var(--space-m); }
+</style>

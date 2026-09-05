@@ -1,0 +1,11 @@
+---
+import Base from '../../layouts/Base.astro';
+import View from '../../components/views/LegalView.astro';
+import { useTranslations } from '../../i18n/utils';
+
+const lang = 'en' as const;
+const t = useTranslations(lang);
+---
+<Base title={`${t('privacy.title')} — Auto Center Seeland AG`} description={t('meta.tagline')}>
+  <View lang={lang} kind="privacy" />
+</Base>

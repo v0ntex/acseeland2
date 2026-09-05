@@ -1,0 +1,21 @@
+---
+import Base from '../../../layouts/Base.astro';
+import VehicleDetailView from '../../../components/views/VehicleDetailView.astro';
+import { getVehicles } from '../../../data/queries';
+import { formatPrice } from '../../../i18n/utils';
+
+export async function getStaticPaths() {
+  const vehicles = await getVehicles();
+  return vehicles.map((v) => ({ params: { slug: v.id }, props: { vehicle: v } }));
+}
+
+const { vehicle } = Astro.props;
+const lang = 'en' as const;
+const full = `${vehicle.make} ${vehicle.model}${vehicle.variant ? ` ${vehicle.variant}` : ''}`;
+---
+<Base
+  title={`${full} — Auto Center Seeland AG`}
+  description={`${full}, ${vehicle.year}, ${vehicle.km.toLocaleString('en-GB')} km, ${formatPrice(vehicle.price, lang)}. ${vehicle.teaser[lang]}`}
+>
+  <VehicleDetailView vehicle={vehicle} lang={lang} />
+</Base>

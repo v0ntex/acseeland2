@@ -1,0 +1,138 @@
+---
+import Hero from '../Hero.astro';
+import Icon from '../Icon.astro';
+import SectionHead from '../SectionHead.astro';
+import VehicleCard from '../VehicleCard.astro';
+import SoldCard from '../SoldCard.astro';
+import { getFeaturedVehicles, getSoldVehicles } from '../../data/queries';
+import { useTranslations, localePath } from '../../i18n/utils';
+import type { Lang } from '../../i18n/ui';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const p = localePath(lang);
+
+const pillars = [
+  { icon: 'zap',      title: t('intro.1.title'), body: t('intro.1.body'), href: p('vehicles') },
+  { icon: 'shield',   title: t('intro.2.title'), body: t('intro.2.body'), href: p('vehicles') },
+  { icon: 'globe',    title: t('intro.3.title'), body: t('intro.3.body'), href: p('sourcing') },
+] as const;
+
+const featuredVehicles = await getFeaturedVehicles(3);
+const soldTeaser = (await getSoldVehicles()).slice(0, 3);
+---
+<Hero lang={lang} />
+
+<!-- ------------------------------------------------ What we do -->
+<section class="section" id="intro">
+  <div class="container">
+    <SectionHead eyebrow={t('intro.eyebrow')} title={t('intro.title')} />
+
+    <div class="grid grid--3">
+      {pillars.map((c, i) => (
+        <a href={c.href} class="card pillar" data-reveal style={`--reveal-delay:${i * 90}ms`}>
+          <span class="pillar__icon"><Icon name={c.icon} size={22} /></span>
+          <h3 class="pillar__title title-xs">{c.title}</h3>
+          <p class="pillar__body">{c.body}</p>
+          <span class="link-arrow pillar__link">
+            {t('intro.link')}<Icon name="arrow-right" size={16} />
+          </span>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ------------------------------------------------ Featured stock -->
+<section class="section">
+  <div class="container">
+    <div class="head-row">
+      <SectionHead eyebrow={t('featured.eyebrow')} title={t('featured.title')} lead={t('featured.lead')} />
+      <a href={p('vehicles')} class="link-arrow head-row__link">
+        {t('featured.all')}<Icon name="arrow-right" size={16} />
+      </a>
+    </div>
+
+    <div class="grid grid--3">
+      {featuredVehicles.map((v, i) => <VehicleCard vehicle={v} lang={lang} index={i} />)}
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ------------------------------------------------ Previously sold -->
+<section class="section sold-teaser">
+  <div class="container">
+    <div class="head-row">
+      <SectionHead eyebrow={t('soldTeaser.eyebrow')} title={t('soldTeaser.title')} lead={t('soldTeaser.lead')} />
+      <a href={p('sold')} class="link-arrow head-row__link">
+        {t('soldTeaser.cta')}<Icon name="arrow-right" size={16} />
+      </a>
+    </div>
+
+    <div class="grid grid--3">
+      {soldTeaser.map((s, i) => <SoldCard item={s} lang={lang} index={i} />)}
+    </div>
+  </div>
+</section>
+
+<!-- ------------------------------------------------ Closing CTA -->
+<section class="section cta-band">
+  <div class="container-narrow cta-band__inner" data-reveal>
+    <img src="/brand/acs-emblem-white.svg" alt="" width="72" height="35" class="cta-band__mark" />
+    <h2 class="title-l">{t('sourcing.title')}</h2>
+    <p class="lead cta-band__lead">{t('sourcing.lead')}</p>
+    <div class="cta-band__actions">
+      <a href={p('sourcing')} class="btn btn--red">{t('sourcing.formTitle')}<Icon name="arrow-right" size={17} /></a>
+      <a href={p('contact')} class="btn btn--ghost">{t('nav.appointment')}</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .head-row { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-m); flex-wrap: wrap; }
+  .head-row :global(.sec-head) { margin-bottom: var(--space-l); flex: 1 1 28rem; }
+  .head-row__link { margin-bottom: calc(var(--space-l) + 0.35rem); flex: none; }
+  @media (max-width: 640px) { .head-row__link { margin-bottom: var(--space-m); } }
+
+  /* -------------------------------------------------------- Pillars */
+  .pillar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+    padding: var(--space-m);
+  }
+  @media (min-width: 900px) { .pillar { padding: var(--space-l) var(--space-m); } }
+
+  .pillar__icon {
+    display: grid;
+    place-items: center;
+    width: 3rem; height: 3rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    color: var(--acs-red);
+    transition: background var(--dur) var(--ease-out),
+                color var(--dur) var(--ease-out),
+                border-color var(--dur) var(--ease-out);
+  }
+  .pillar:hover .pillar__icon { background: var(--acs-red); border-color: var(--acs-red); color: var(--acs-black); }
+
+  .pillar__title { margin-top: var(--space-2xs); transition: color var(--dur) var(--ease-out); }
+  .pillar:hover .pillar__title { color: var(--acs-red); }
+  .pillar__body { color: var(--text-muted); font-size: var(--step--1); line-height: 1.65; flex: 1; }
+  .pillar__link { margin-top: var(--space-2xs); }
+
+  /* --------------------------------------------------- Sold teaser */
+  .sold-teaser { background: linear-gradient(180deg, transparent, rgba(255,255,255,0.018), transparent); }
+
+  /* ------------------------------------------------------ CTA band */
+  .cta-band { border-top: 1px solid var(--line); text-align: center; }
+  .cta-band__inner { display: grid; justify-items: center; gap: var(--space-s); }
+  .cta-band__mark { opacity: 0.5; margin-bottom: var(--space-2xs); }
+  .cta-band__lead { max-width: 52ch; }
+  .cta-band__actions { display: flex; flex-wrap: wrap; gap: var(--space-xs); justify-content: center; margin-top: var(--space-m); }
+</style>

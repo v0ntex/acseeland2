@@ -1,0 +1,298 @@
+---
+import Icon from '../Icon.astro';
+import VehicleCard from '../VehicleCard.astro';
+import ContactForm from '../ContactForm.astro';
+import { getVehicles, type Vehicle } from '../../data/queries';
+import { site } from '../../data/site';
+import { useTranslations, localePath, formatPrice, formatKm, formatNumber } from '../../i18n/utils';
+import type { Lang } from '../../i18n/ui';
+
+interface Props { vehicle: Vehicle; lang: Lang; }
+const { vehicle: v, lang } = Astro.props;
+const t = useTranslations(lang);
+const p = localePath(lang);
+
+const name = `${v.make} ${v.model}`;
+const full = `${name}${v.variant ? ` ${v.variant}` : ''}`;
+const photos = v.photos;
+const related = (await getVehicles()).filter((x) => x.id !== v.id).slice(0, 3);
+
+const specs = [
+  { label: t('spec.year'),    value: String(v.year) },
+  { label: t('spec.km'),      value: formatKm(v.km) },
+  { label: t('spec.power'),   value: `${formatNumber(v.power)} PS` },
+  { label: t('spec.fuel'),    value: t(`filter.fuel.${v.fuel}` as any) },
+  { label: t('spec.gearbox'), value: t(`spec.gearbox.${v.gearbox}` as any) },
+  { label: t('spec.drive'),   value: v.drive },
+  { label: t('spec.colour'),  value: v.colour[lang] },
+  ...(v.mfk ? [{ label: t('spec.mfk'), value: v.mfk }] : []),
+];
+---
+<article class="vd">
+  <div class="container vd__top">
+    <a href={p('vehicles')} class="link-arrow vd__back">
+      <Icon name="arrow-left" size={16} />{t('detail.back')}
+    </a>
+  </div>
+
+  <!-- ------------------------------------------------ Gallery -->
+  <div class="container">
+    <div class="vd__gallery">
+      <figure class="vd__stage media media--16-10" id="vd-stage">
+        {photos.length ? (
+          <img src={photos[0]} alt={full} id="vd-stage-img" width="1400" height="875" fetchpriority="high" />
+        ) : (
+          <div class="placeholder">
+            <img src="/brand/acs-emblem-white.svg" alt="" width="160" height="78" />
+          </div>
+        )}
+      </figure>
+
+      {photos.length > 1 && (
+        <div class="vd__thumbs" role="group" aria-label={full}>
+          {photos.map((src, i) => (
+            <button type="button" class:list={['vd__thumb', i === 0 && 'is-on']} data-src={src}
+                    aria-pressed={i === 0 ? 'true' : 'false'}>
+              <img src={src} alt={`${full} — ${i + 1}`} loading="lazy" width="200" height="133" />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!photos.length && <p class="vd__photo-note">{t('detail.photosSoon')}</p>}
+    </div>
+  </div>
+
+  <!-- ------------------------------------------------ Body -->
+  <div class="container vd__main">
+    <div class="vd__info">
+      <p class="eyebrow">{t(`filter.cat.${v.category}` as any)}</p>
+      <h1 class="title-xl vd__name">{name}</h1>
+      {v.variant && <p class="vd__variant">{v.variant}</p>}
+
+      <p class="vd__price num">{formatPrice(v.price, lang)}</p>
+
+      <section class="vd__block">
+        <h2 class="vd__h2">{t('detail.description')}</h2>
+        {v.description[lang].map((para) => <p class="vd__para">{para}</p>)}
+      </section>
+
+      <section class="vd__block">
+        <h2 class="vd__h2">{t('detail.specs')}</h2>
+        <dl class="vd__specs num">
+          {specs.map((s) => (
+            <div class="vd__spec">
+              <dt>{s.label}</dt>
+              <dd>{s.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      <section class="vd__block">
+        <h2 class="vd__h2">{t('detail.highlights')}</h2>
+        <ul class="vd__highlights">
+          {v.highlights[lang].map((h) => (
+            <li><Icon name="check" size={16} /><span>{h}</span></li>
+          ))}
+        </ul>
+      </section>
+    </div>
+
+    <!-- ------------------------------------------------ Sticky enquiry rail -->
+    <aside class="vd__rail">
+      <div class="vd__panel">
+        <p class="vd__panel-label">{t('detail.enquire')}</p>
+        <p class="vd__panel-car">{full}</p>
+        <p class="vd__panel-price num">{formatPrice(v.price, lang)}</p>
+
+        <div class="vd__panel-actions">
+          <a href={`#enquiry`} class="btn btn--red">{t('detail.enquire')}<Icon name="arrow-right" size={17} /></a>
+          <a href={`tel:${site.phoneHref}`} class="btn btn--ghost">
+            <Icon name="phone" size={16} />{t('detail.call')}
+          </a>
+          {site.whatsapp && (
+            <a
+              href={`https://wa.me/${site.whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`${full} — ${t('detail.enquirySubject')}`)}`}
+              class="btn btn--ghost" target="_blank" rel="noopener noreferrer"
+            >
+              <Icon name="message-circle" size={16} />{t('detail.whatsapp')}
+            </a>
+          )}
+        </div>
+
+        <p class="vd__panel-note">
+          <Icon name="clock" size={14} />{t('detail.viewingNote')}
+        </p>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ------------------------------------------------ Enquiry form -->
+  <section class="section vd__enquiry" id="enquiry">
+    <div class="container-narrow">
+      <p class="eyebrow">{t('detail.enquire')}</p>
+      <h2 class="title-m vd__enquiry-title">{full}</h2>
+      <ContactForm lang={lang} id={`enquiry-${v.id}`} subject={`${t('detail.enquirySubject')}: ${full}`} />
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------ Related -->
+  <section class="section">
+    <div class="container">
+      <h2 class="title-m vd__related-title" data-reveal>{t('detail.more')}</h2>
+      <div class="grid grid--3">
+        {related.map((r, i) => <VehicleCard vehicle={r} lang={lang} index={i} />)}
+      </div>
+    </div>
+  </section>
+</article>
+
+<style>
+  .vd__top { padding-top: calc(6.5rem + env(safe-area-inset-top)); padding-bottom: var(--space-s); }
+  @media (min-width: 1024px) { .vd__top { padding-top: 8rem; } }
+
+  .vd__gallery { display: grid; gap: var(--space-xs); }
+  .vd__stage { border: 1px solid var(--line); border-radius: var(--radius); margin: 0; }
+
+  .vd__thumbs {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(5.5rem, 1fr);
+    gap: var(--space-2xs);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding-bottom: 0.25rem;
+    scrollbar-width: thin;
+  }
+  .vd__thumb {
+    padding: 0;
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    aspect-ratio: 3 / 2;
+    transition: border-color var(--dur) var(--ease-out), opacity var(--dur) var(--ease-out);
+    opacity: 0.6;
+  }
+  .vd__thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .vd__thumb:hover { opacity: 1; border-color: var(--line-strong); }
+  .vd__thumb.is-on { opacity: 1; border-color: var(--acs-red); }
+
+  .vd__photo-note {
+    font-size: var(--step--1);
+    color: var(--text-subtle);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+    padding-top: var(--space-2xs);
+  }
+
+  /* ---------------------------------------------------------- Body */
+  .vd__main {
+    display: grid;
+    gap: var(--space-l);
+    padding-top: var(--space-xl);
+  }
+  @media (min-width: 1024px) {
+    .vd__main { grid-template-columns: minmax(0, 1.65fr) minmax(20rem, 1fr); gap: var(--space-xl); align-items: start; }
+  }
+
+  .vd__name { margin-top: var(--space-s); }
+  .vd__variant { margin-top: 0.4rem; font-size: var(--step-1); color: var(--text-muted); font-weight: 300; }
+  .vd__price {
+    margin-top: var(--space-m);
+    font-size: var(--step-3);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--acs-red);
+  }
+
+  .vd__block { margin-top: var(--space-xl); }
+  .vd__h2 {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: var(--space-m);
+  }
+  .vd__para { color: var(--text-muted); max-width: 68ch; line-height: 1.75; }
+  .vd__para + .vd__para { margin-top: var(--space-s); }
+
+  .vd__specs { display: grid; gap: 0; margin: 0; }
+  @media (min-width: 560px) { .vd__specs { grid-template-columns: repeat(2, 1fr); column-gap: var(--space-l); } }
+  .vd__spec {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-s);
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .vd__spec dt { font-size: var(--step--1); color: var(--text-subtle); letter-spacing: 0.06em; }
+  .vd__spec dd { margin: 0; font-weight: 600; text-align: right; }
+
+  .vd__highlights { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.7rem; }
+  @media (min-width: 560px) { .vd__highlights { grid-template-columns: repeat(2, 1fr); column-gap: var(--space-l); } }
+  .vd__highlights li { display: flex; align-items: flex-start; gap: 0.65em; font-size: var(--step--1); color: var(--text-muted); }
+  .vd__highlights svg { color: var(--acs-red); margin-top: 0.25em; flex: none; }
+
+  /* ---------------------------------------------------------- Rail */
+  @media (min-width: 1024px) {
+    .vd__rail { position: sticky; top: 7rem; }
+  }
+  .vd__panel {
+    padding: var(--space-m);
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-top: 2px solid var(--acs-red);
+    border-radius: var(--radius);
+  }
+  .vd__panel-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+  }
+  .vd__panel-car { margin-top: var(--space-xs); font-size: var(--step-1); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+  .vd__panel-price { margin-top: 0.4rem; font-size: var(--step-2); font-weight: 800; letter-spacing: -0.03em; }
+  .vd__panel-actions { display: grid; gap: 0.5rem; margin-top: var(--space-m); }
+  .vd__panel-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55em;
+    margin-top: var(--space-m);
+    padding-top: var(--space-s);
+    border-top: 1px solid var(--line);
+    font-size: var(--step--1);
+    color: var(--text-subtle);
+    line-height: 1.5;
+  }
+  .vd__panel-note svg { margin-top: 0.2em; flex: none; }
+
+  .vd__enquiry { border-top: 1px solid var(--line); margin-top: var(--space-2xl); }
+  .vd__enquiry-title { margin: var(--space-s) 0 var(--space-l); }
+  .vd__related-title { margin-bottom: var(--space-l); }
+</style>
+
+<script>
+  /* Thumbnail → main image. Pure src swap, no layout change. */
+  const stage = document.getElementById('vd-stage-img') as HTMLImageElement | null;
+  const thumbs = [...document.querySelectorAll<HTMLButtonElement>('.vd__thumb')];
+  if (stage && thumbs.length) {
+    thumbs.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        stage.src = btn.dataset.src!;
+        thumbs.forEach((b) => {
+          const on = b === btn;
+          b.classList.toggle('is-on', on);
+          b.setAttribute('aria-pressed', String(on));
+        });
+      });
+    });
+  }
+</script>

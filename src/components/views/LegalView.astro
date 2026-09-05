@@ -1,0 +1,148 @@
+---
+import { site } from '../../data/site';
+import { useTranslations, localePath } from '../../i18n/utils';
+import type { Lang } from '../../i18n/ui';
+
+interface Props { lang: Lang; kind: 'imprint' | 'privacy'; }
+const { lang, kind } = Astro.props;
+const t = useTranslations(lang);
+const p = localePath(lang);
+const title = kind === 'imprint' ? t('imprint.title') : t('privacy.title');
+---
+<div class="page-head">
+  <div class="container-narrow">
+    <p class="eyebrow eyebrow--plain">{t('footer.legal')}</p>
+    <h1 class="title-l page-head__title">{title}</h1>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container-narrow prose">
+    {kind === 'imprint' ? (
+      <>
+        <h2>{lang === 'de' ? 'Verantwortlich für den Inhalt' : 'Responsible for the content'}</h2>
+        <p>
+          {site.legalName}<br />
+          {site.offices[0].street}<br />
+          {site.offices[0].zip} {site.offices[0].city}<br />
+          {site.offices[0].country}
+        </p>
+        <p>
+          {t('contact.phone')}: <a href={`tel:${site.phoneHref}`}>{site.phone}</a><br />
+          {t('contact.email')}: <a href={`mailto:${site.email}`}>{site.email}</a>
+        </p>
+        <h2>{lang === 'de' ? 'Handelsregister' : 'Commercial register'}</h2>
+        <p>
+          {lang === 'de' ? 'Unternehmens-Identifikationsnummer' : 'Company identification number'} (UID): {site.uid}<br />
+          {lang === 'de' ? 'Rechtsform' : 'Legal form'}: {lang === 'de' ? 'Aktiengesellschaft' : 'Public limited company (AG)'}<br />
+          {lang === 'de' ? 'Sitz' : 'Registered office'}: {site.offices[0].city}
+        </p>
+        <h2>{lang === 'de' ? 'Haftungsausschluss' : 'Disclaimer'}</h2>
+        <p>
+          {lang === 'de'
+            ? 'Die Inhalte dieser Website werden mit grösstmöglicher Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Fahrzeugangaben wird jedoch keine Gewähr übernommen. Verbindlich sind ausschliesslich die Angaben im schriftlichen Kaufvertrag. Irrtümer und Zwischenverkauf bleiben vorbehalten.'
+            : 'The content of this website is compiled with the greatest possible care. No guarantee is given for the accuracy, completeness or timeliness of the vehicle details. Only the information in the written purchase contract is binding. Errors and prior sale excepted.'}
+        </p>
+        <h2>{lang === 'de' ? 'Urheberrecht' : 'Copyright'}</h2>
+        <p>
+          {lang === 'de'
+            ? 'Sämtliche Inhalte dieser Website — insbesondere Texte, Fotografien, Logos und Grafiken — sind urheberrechtlich geschützt. Eine Verwendung ohne vorgängige schriftliche Zustimmung ist nicht gestattet.'
+            : 'All content on this website — in particular texts, photographs, logos and graphics — is protected by copyright. Use without prior written consent is not permitted.'}
+        </p>
+        <hr />
+        <p class="note">
+          {lang === 'de'
+            ? 'Hinweis: Bitte lassen Sie diese Angaben vor der Veröffentlichung rechtlich prüfen und ergänzen Sie fehlende Pflichtangaben.'
+            : 'Note: please have these details reviewed legally before publication and add any missing mandatory information.'}
+        </p>
+      </>
+    ) : (
+      <>
+        <p class="prose__lead">
+          {lang === 'de'
+            ? 'Diese Erklärung beschreibt, wie die Auto Center Seeland AG Personendaten bearbeitet, die über diese Website erhoben werden. Grundlage ist das Schweizer Datenschutzgesetz (revDSG).'
+            : 'This statement describes how Auto Center Seeland AG processes personal data collected via this website, in accordance with the Swiss Federal Act on Data Protection (revFADP).'}
+        </p>
+
+        <h2>{lang === 'de' ? 'Verantwortliche Stelle' : 'Data controller'}</h2>
+        <p>
+          {site.legalName}, {site.offices[0].street}, {site.offices[0].zip} {site.offices[0].city}<br />
+          <a href={`mailto:${site.email}`}>{site.email}</a>
+        </p>
+
+        <h2>{lang === 'de' ? 'Welche Daten wir bearbeiten' : 'What data we process'}</h2>
+        <p>
+          {lang === 'de'
+            ? 'Wenn Sie uns über ein Formular auf dieser Website kontaktieren, bearbeiten wir die von Ihnen angegebenen Daten — namentlich Name, E-Mail-Adresse, Telefonnummer und den Inhalt Ihrer Nachricht — ausschliesslich zur Beantwortung Ihrer Anfrage.'
+            : 'When you contact us through a form on this website we process the details you provide — namely your name, email address, telephone number and the content of your message — solely in order to respond to your enquiry.'}
+        </p>
+
+        <h2>{lang === 'de' ? 'Cookies und Tracking' : 'Cookies and tracking'}</h2>
+        <p>
+          {lang === 'de'
+            ? 'Diese Website setzt keine Tracking-Cookies und bindet keine Analyse-Dienste von Drittanbietern ein. Schriften werden über Google Fonts geladen; dabei wird Ihre IP-Adresse an Google übermittelt.'
+            : 'This website sets no tracking cookies and embeds no third-party analytics services. Fonts are loaded via Google Fonts, which transmits your IP address to Google.'}
+        </p>
+
+        <h2>{lang === 'de' ? 'Weitergabe an Dritte' : 'Disclosure to third parties'}</h2>
+        <p>
+          {lang === 'de'
+            ? 'Ihre Daten werden nicht verkauft und nicht zu Werbezwecken an Dritte weitergegeben. Eine Weitergabe erfolgt nur, soweit dies zur Abwicklung eines Kaufs erforderlich oder gesetzlich vorgeschrieben ist.'
+            : 'Your data is not sold and is not passed to third parties for advertising purposes. It is shared only where necessary to complete a purchase or where required by law.'}
+        </p>
+
+        <h2>{lang === 'de' ? 'Aufbewahrung' : 'Retention'}</h2>
+        <p>
+          {lang === 'de'
+            ? 'Wir bewahren Ihre Daten so lange auf, wie es für die Bearbeitung Ihrer Anfrage und zur Erfüllung gesetzlicher Aufbewahrungspflichten erforderlich ist.'
+            : 'We retain your data for as long as necessary to handle your enquiry and to meet statutory retention obligations.'}
+        </p>
+
+        <h2>{lang === 'de' ? 'Ihre Rechte' : 'Your rights'}</h2>
+        <p>
+          {lang === 'de'
+            ? 'Sie haben das Recht auf Auskunft, Berichtigung, Löschung und Herausgabe Ihrer Personendaten. Wenden Sie sich dazu an die oben genannte Adresse.'
+            : 'You have the right to access, rectify, delete and receive a copy of your personal data. Please contact us at the address above.'}
+        </p>
+
+        <hr />
+        <p class="note">
+          {lang === 'de'
+            ? 'Hinweis: Diese Datenschutzerklärung ist eine Vorlage. Bitte lassen Sie sie vor der Veröffentlichung rechtlich prüfen und an Ihre tatsächlichen Abläufe anpassen.'
+            : 'Note: this privacy policy is a template. Please have it reviewed legally and adapted to your actual processes before publication.'}
+        </p>
+      </>
+    )}
+
+    <p class="prose__back">
+      <a href={p('home')} class="link-arrow">{t('notFound.cta')}</a>
+    </p>
+  </div>
+</section>
+
+<style>
+  .page-head {
+    padding-top: calc(7.5rem + env(safe-area-inset-top));
+    padding-bottom: var(--space-l);
+    border-bottom: 1px solid var(--line);
+  }
+  @media (min-width: 1024px) { .page-head { padding-top: 10rem; } }
+  .page-head__title { margin-top: var(--space-s); }
+
+  .prose { color: var(--text-muted); line-height: 1.8; }
+  .prose :global(h2) {
+    margin-top: var(--space-l);
+    margin-bottom: var(--space-xs);
+    font-size: var(--step-1);
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .prose :global(h2:first-child) { margin-top: 0; }
+  .prose :global(p) { margin-bottom: var(--space-s); max-width: 68ch; overflow-wrap: anywhere; }
+  .prose :global(a) { color: var(--acs-red); text-decoration: underline; text-underline-offset: 3px; }
+  .prose :global(hr) { margin: var(--space-l) 0; border: 0; border-top: 1px solid var(--line); }
+  .prose__lead { font-size: var(--step-1); font-weight: 300; color: var(--text); }
+  .prose :global(.note) { font-size: var(--step--1); color: var(--text-subtle); font-style: italic; }
+  .prose__back { margin-top: var(--space-l); }
+</style>

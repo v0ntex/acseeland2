@@ -1,0 +1,168 @@
+---
+import Icon from '../Icon.astro';
+import ContactForm from '../ContactForm.astro';
+import { site } from '../../data/site';
+import { useTranslations } from '../../i18n/utils';
+import type { Lang } from '../../i18n/ui';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const maps = (q: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+---
+<div class="page-head">
+  <div class="container">
+    <p class="eyebrow">{t('nav.contact')}</p>
+    <h1 class="title-xl page-head__title">{t('contact.title')}</h1>
+    <p class="lead page-head__lead">{t('contact.lead')}</p>
+  </div>
+</div>
+
+<!-- Appointment-only notice: the single most important thing on this page -->
+<section class="section section--tight">
+  <div class="container">
+    <div class="notice" data-reveal>
+      <span class="notice__icon"><Icon name="clock" size={22} /></span>
+      <div>
+        <h2 class="title-xs">{t('contact.appointmentTitle')}</h2>
+        <p class="notice__body">{t('contact.appointmentBody')}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container contact__grid">
+
+    <!-- ------------------------------------------------ Details -->
+    <div class="contact__details" data-reveal>
+      <div class="contact__block">
+        <h2 class="contact__h2">{t('footer.contact')}</h2>
+        <a href={`tel:${site.phoneHref}`} class="contact__row">
+          <Icon name="phone" size={18} />
+          <span><span class="contact__label">{t('contact.phone')}</span><span class="contact__value num">{site.phone}</span></span>
+        </a>
+        <a href={`mailto:${site.email}`} class="contact__row">
+          <Icon name="mail" size={18} />
+          <span><span class="contact__label">{t('contact.email')}</span><span class="contact__value">{site.email}</span></span>
+        </a>
+        {site.whatsapp && (
+          <a href={`https://wa.me/${site.whatsapp.replace(/[^0-9]/g, '')}`} class="contact__row" target="_blank" rel="noopener noreferrer">
+            <Icon name="message-circle" size={18} />
+            <span><span class="contact__label">WhatsApp</span><span class="contact__value">{t('contact.whatsappValue')}</span></span>
+          </a>
+        )}
+        <a href={site.social.instagram} class="contact__row" target="_blank" rel="noopener noreferrer">
+          <Icon name="instagram" size={18} />
+          <span><span class="contact__label">Instagram</span><span class="contact__value">{site.social.instagramHandle}</span></span>
+        </a>
+      </div>
+
+      <div class="contact__block">
+        <h2 class="contact__h2">{t('contact.offices')}</h2>
+        {site.offices.map((o) => (
+          <div class="office">
+            <p class="office__label">{o.label}</p>
+            <p class="office__addr">{o.street}<br />{o.zip} {o.city}<br />{o.country}</p>
+            <a href={maps(o.mapsQuery)} class="link-arrow office__link" target="_blank" rel="noopener noreferrer">
+              <Icon name="map-pin" size={15} />{t('contact.directions')}
+            </a>
+          </div>
+        ))}
+      </div>
+
+      <div class="contact__block">
+        <h2 class="contact__h2">{t('contact.availability')}</h2>
+        <p class="avail">
+          <Icon name="clock" size={17} />
+          <span>{t('contact.availabilityValue')}</span>
+        </p>
+        <p class="avail__note">{t('contact.availabilityNote')}</p>
+      </div>
+    </div>
+
+    <!-- ------------------------------------------------ Form -->
+    <div class="contact__form" data-reveal>
+      <h2 class="title-m contact__form-title">{t('contact.formTitle')}</h2>
+      <ContactForm lang={lang} id="contact-page-form" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .page-head {
+    padding-top: calc(7.5rem + env(safe-area-inset-top));
+    padding-bottom: var(--space-l);
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+  }
+  @media (min-width: 1024px) { .page-head { padding-top: 10rem; padding-bottom: var(--space-xl); } }
+  .page-head__title { margin-top: var(--space-s); }
+  .page-head__lead { margin-top: var(--space-s); max-width: 52ch; }
+
+  .notice {
+    display: flex;
+    gap: var(--space-m);
+    padding: var(--space-m);
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--acs-red);
+    border-radius: var(--radius);
+  }
+  .notice__icon { color: var(--acs-red); flex: none; padding-top: 0.15rem; }
+  .notice__body { margin-top: var(--space-xs); color: var(--text-muted); line-height: 1.7; max-width: 64ch; }
+
+  .contact__grid { display: grid; gap: var(--space-xl); }
+  @media (min-width: 1024px) { .contact__grid { grid-template-columns: minmax(18rem, 1fr) minmax(0, 1.5fr); gap: var(--space-2xl); align-items: start; } }
+
+  .contact__block + .contact__block { margin-top: var(--space-xl); }
+  .contact__h2 {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: var(--space-s);
+  }
+
+  .contact__row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-s);
+    padding: 0.75rem 0;
+    min-height: 2.75rem;
+    border-bottom: 1px solid var(--line);
+    transition: color var(--dur) var(--ease-out);
+  }
+  .contact__row svg { color: var(--acs-red); margin-top: 0.9rem; flex: none; transition: transform var(--dur) var(--ease-out); }
+  .contact__row:hover { color: var(--acs-red); }
+  .contact__row:hover svg { transform: translateX(2px); }
+  .contact__label { display: block; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-subtle); }
+  .contact__value { display: block; margin-top: 0.2rem; font-weight: 600; word-break: break-word; overflow-wrap: anywhere; }
+
+  .office + .office { margin-top: var(--space-m); padding-top: var(--space-m); border-top: 1px solid var(--line); }
+  .office__label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--acs-red); }
+  .office__addr { margin-top: var(--space-2xs); color: var(--text-muted); line-height: 1.65; }
+  .office__link { margin-top: var(--space-xs); }
+
+  .avail {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    font-size: var(--step-1);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    color: var(--acs-red);
+  }
+  .avail__note {
+    margin-top: var(--space-xs);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    line-height: 1.65;
+    max-width: 42ch;
+  }
+
+  .contact__form-title { margin-bottom: var(--space-l); }
+</style>

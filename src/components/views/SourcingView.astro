@@ -1,0 +1,90 @@
+---
+import Icon from '../Icon.astro';
+import ContactForm from '../ContactForm.astro';
+import { useTranslations } from '../../i18n/utils';
+import type { Lang } from '../../i18n/ui';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const steps = [
+  { n: '01', icon: 'search',   title: t('sourcing.step1.title'), body: t('sourcing.step1.body') },
+  { n: '02', icon: 'shield',   title: t('sourcing.step2.title'), body: t('sourcing.step2.body') },
+  { n: '03', icon: 'globe',    title: t('sourcing.step3.title'), body: t('sourcing.step3.body') },
+  { n: '04', icon: 'check',    title: t('sourcing.step4.title'), body: t('sourcing.step4.body') },
+] as const;
+---
+<div class="page-head">
+  <div class="container">
+    <p class="eyebrow">{t('nav.sourcing')}</p>
+    <h1 class="title-xl page-head__title">{t('sourcing.title')}</h1>
+    <p class="lead page-head__lead">{t('sourcing.lead')}</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <ol class="steps">
+      {steps.map((s, i) => (
+        <li class="step" data-reveal style={`--reveal-delay:${i * 90}ms`}>
+          <div class="step__mark">
+            <span class="step__n num">{s.n}</span>
+            <span class="step__icon"><Icon name={s.icon} size={18} /></span>
+          </div>
+          <h2 class="step__title title-xs">{s.title}</h2>
+          <p class="step__body">{s.body}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<section class="section sourcing-form" id="request">
+  <div class="container-narrow">
+    <div data-reveal>
+      <p class="eyebrow">{t('sourcing.formTitle')}</p>
+      <h2 class="title-l sourcing-form__title">{t('sourcing.formTitle')}</h2>
+      <p class="lead sourcing-form__lead">{t('sourcing.formLead')}</p>
+    </div>
+    <div class="sourcing-form__body">
+      <ContactForm lang={lang} variant="sourcing" id="sourcing-form" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .page-head {
+    padding-top: calc(7.5rem + env(safe-area-inset-top));
+    padding-bottom: var(--space-l);
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+  }
+  @media (min-width: 1024px) { .page-head { padding-top: 10rem; padding-bottom: var(--space-xl); } }
+  .page-head__title { margin-top: var(--space-s); max-width: 18ch; }
+  .page-head__lead { margin-top: var(--space-s); max-width: 56ch; }
+
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--space-l); counter-reset: step; }
+  @media (min-width: 700px)  { .steps { grid-template-columns: repeat(2, 1fr); gap: var(--space-xl) var(--space-l); } }
+  @media (min-width: 1100px) { .steps { grid-template-columns: repeat(4, 1fr); gap: var(--space-l) var(--space-m); } }
+
+  .step { position: relative; padding-top: var(--space-m); border-top: 1px solid var(--line); }
+  .step__mark { display: flex; align-items: center; justify-content: space-between; gap: var(--space-s); margin-bottom: var(--space-m); }
+  .step__n { font-size: var(--step-3); font-weight: 800; letter-spacing: -0.04em; color: var(--line-strong); line-height: 1; }
+  .step__icon {
+    display: grid;
+    place-items: center;
+    width: 2.5rem; height: 2.5rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    color: var(--acs-red);
+    flex: none;
+  }
+  .step__title { margin-bottom: var(--space-xs); }
+  .step__body { color: var(--text-muted); font-size: var(--step--1); line-height: 1.7; }
+
+  .sourcing-form { border-top: 1px solid var(--line); }
+  .sourcing-form__title { margin-top: var(--space-s); }
+  .sourcing-form__lead { margin-top: var(--space-s); }
+  .sourcing-form__body { margin-top: var(--space-l); }
+</style>

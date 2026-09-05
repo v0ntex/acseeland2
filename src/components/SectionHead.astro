@@ -1,0 +1,25 @@
+---
+interface Props {
+  eyebrow?: string;
+  title: string;
+  lead?: string;
+  align?: 'left' | 'center';
+  as?: 'h1' | 'h2';
+}
+const { eyebrow, title, lead, align = 'left', as: Tag = 'h2' } = Astro.props;
+---
+<header class:list={['sec-head', align === 'center' && 'sec-head--center']} data-reveal>
+  {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+  <Tag class="sec-head__title title-l">{title}</Tag>
+  {lead && <p class="lead sec-head__lead">{lead}</p>}
+</header>
+
+<style>
+  .sec-head { margin-bottom: var(--space-l); }
+  .sec-head__title { margin-top: var(--space-s); max-width: 20ch; }
+  .sec-head__lead { margin-top: var(--space-s); }
+  .sec-head--center { text-align: center; }
+  .sec-head--center .sec-head__title { margin-inline: auto; }
+  .sec-head--center .sec-head__lead { margin-inline: auto; }
+  .sec-head--center .eyebrow::before { display: none; }
+</style>

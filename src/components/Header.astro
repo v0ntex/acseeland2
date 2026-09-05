@@ -1,0 +1,308 @@
+---
+import Icon from './Icon.astro';
+import { getLangFromUrl, useTranslations, localePath, alternatePath } from '../i18n/utils';
+import { site } from '../data/site';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const p = localePath(lang);
+const other = alternatePath(Astro.url, lang);
+const here = Astro.url.pathname;
+
+const nav = [
+  { key: 'vehicles', href: p('vehicles'), label: t('nav.vehicles') },
+  { key: 'sold',     href: p('sold'),     label: t('nav.sold') },
+  { key: 'sourcing', href: p('sourcing'), label: t('nav.sourcing') },
+  { key: 'about',    href: p('about'),    label: t('nav.about') },
+  { key: 'contact',  href: p('contact'),  label: t('nav.contact') },
+];
+const isCurrent = (href: string) => here === href || (href !== p('home') && here.startsWith(href));
+---
+
+<header class="site-header" id="site-header">
+  <div class="site-header__inner container">
+    <a href={p('home')} class="brand" aria-label="Auto Center Seeland AG — Home">
+      <img src="/brand/acs-lockup-white.svg" alt="Auto Center Seeland AG" width="170" height="22" />
+    </a>
+
+    <nav class="nav-desktop" aria-label={t('nav.menu')}>
+      {nav.map((item) => (
+        <a href={item.href} class="nav-link" aria-current={isCurrent(item.href) ? 'page' : undefined}>
+          {item.label}
+        </a>
+      ))}
+    </nav>
+
+    <div class="site-header__actions">
+      <a href={other} class="lang-switch" hreflang={lang === 'de' ? 'en' : 'de'}>
+        {t('lang.switch')}
+      </a>
+      <a href={p('contact')} class="btn btn--sm header-cta">{t('nav.appointment')}</a>
+      <button
+        type="button"
+        class="menu-toggle"
+        id="menu-toggle"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        aria-label={t('nav.menu')}
+      >
+        <Icon name="menu" size={24} />
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile menu -->
+<div class="mobile-menu" id="mobile-menu" hidden>
+  <div class="mobile-menu__head container">
+    <img src="/brand/acs-lockup-white.svg" alt="" width="150" height="19" />
+    <button type="button" class="menu-toggle" id="menu-close" aria-label={t('nav.close')}>
+      <Icon name="x" size={24} />
+    </button>
+  </div>
+  <nav class="mobile-menu__nav container" aria-label={t('nav.menu')}>
+    {nav.map((item, i) => (
+      <a href={item.href} class="mobile-menu__link" style={`--i:${i}`}
+         aria-current={isCurrent(item.href) ? 'page' : undefined}>
+        <span>{item.label}</span>
+        <Icon name="arrow-right" size={20} />
+      </a>
+    ))}
+  </nav>
+  <div class="mobile-menu__foot container">
+    <a href={`tel:${site.phoneHref}`} class="mobile-menu__contact">
+      <Icon name="phone" size={18} /> {site.phone}
+    </a>
+    <a href={`mailto:${site.email}`} class="mobile-menu__contact">
+      <Icon name="mail" size={18} /> {site.email}
+    </a>
+    <a href={other} class="btn btn--ghost btn--sm" hreflang={lang === 'de' ? 'en' : 'de'}>
+      <Icon name="globe" size={16} /> {t('lang.switch')}
+    </a>
+  </div>
+</div>
+
+<style>
+  .site-header {
+    position: fixed;
+    inset-inline: 0;
+    top: 0;
+    z-index: var(--z-header);
+    background: transparent;
+    border-bottom: 1px solid transparent;
+    transition: background var(--dur) var(--ease-out),
+                border-color var(--dur) var(--ease-out),
+                backdrop-filter var(--dur) var(--ease-out);
+  }
+  /* Solid once scrolled, so nav text never sits on busy photography */
+  .site-header.is-stuck {
+    background: rgba(10, 10, 10, 0.88);
+    backdrop-filter: blur(14px) saturate(1.3);
+    -webkit-backdrop-filter: blur(14px) saturate(1.3);
+    border-bottom-color: var(--line);
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-m);
+    min-height: 4.75rem;
+  }
+  @media (min-width: 1024px) { .site-header__inner { min-height: 5.5rem; } }
+
+  .brand { display: flex; align-items: center; flex: none; padding-block: 0.4rem; }
+  .brand img { width: 132px; height: auto; }
+  @media (min-width: 1024px) { .brand img { width: 160px; } }
+
+  .nav-desktop { display: none; gap: var(--space-m); }
+  @media (min-width: 1024px) { .nav-desktop { display: flex; } }
+
+  .nav-link {
+    position: relative;
+    padding: 0.5rem 0;
+    font-size: var(--step--1);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    transition: color var(--dur) var(--ease-out);
+  }
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    left: 0; bottom: 0;
+    width: 100%; height: 1px;
+    background: var(--acs-red);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur) var(--ease-out);
+  }
+  .nav-link:hover { color: var(--text); }
+  .nav-link:hover::after { transform: scaleX(1); }
+  /* Current page is marked by colour AND a persistent rule, not colour alone */
+  .nav-link[aria-current='page'] { color: var(--text); }
+  .nav-link[aria-current='page']::after { transform: scaleX(1); }
+
+  .site-header__actions { display: flex; align-items: center; gap: var(--space-xs); }
+
+  .lang-switch {
+    display: none;
+    padding: 0.5rem 0.65rem;
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    transition: color var(--dur) var(--ease-out);
+  }
+  .lang-switch:hover { color: var(--acs-red); }
+  @media (min-width: 640px) { .lang-switch { display: inline-flex; } }
+
+  .header-cta { display: none; }
+  @media (min-width: 1024px) { .header-cta { display: inline-flex; } }
+
+  .menu-toggle {
+    display: grid;
+    place-items: center;
+    width: 2.75rem; height: 2.75rem;   /* 44px touch target */
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    color: var(--text);
+    transition: border-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
+  }
+  .menu-toggle:hover { border-color: var(--acs-red); color: var(--acs-red); }
+  @media (min-width: 1024px) { #menu-toggle { display: none; } }
+
+  /* ---------------------------------------------------- Mobile menu */
+  .mobile-menu {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-menu);
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .mobile-menu[hidden] { display: none; }
+
+  .mobile-menu__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 4.75rem;
+    flex: none;
+  }
+  .mobile-menu__head img { width: 132px; height: auto; }
+
+  .mobile-menu__nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-block: var(--space-l);
+  }
+  .mobile-menu__link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+    padding: var(--space-s) 0;
+    border-bottom: 1px solid var(--line);
+    font-size: var(--step-2);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    opacity: 0;
+    transform: translateY(14px);
+    transition: color var(--dur) var(--ease-out);
+  }
+  .mobile-menu__link svg { color: var(--text-subtle); }
+  .mobile-menu__link[aria-current='page'] { color: var(--acs-red); }
+  .mobile-menu__link[aria-current='page'] svg { color: var(--acs-red); }
+
+  .mobile-menu.is-open .mobile-menu__link {
+    animation: menu-in 420ms var(--ease-out) forwards;
+    animation-delay: calc(var(--i) * 45ms + 60ms);
+  }
+  @keyframes menu-in { to { opacity: 1; transform: none; } }
+
+  .mobile-menu__foot {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    align-items: flex-start;
+    padding-bottom: calc(var(--space-l) + env(safe-area-inset-bottom));
+  }
+  .mobile-menu__contact {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    min-height: 2.75rem;
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    letter-spacing: 0.04em;
+  }
+  .mobile-menu__contact:hover { color: var(--acs-red); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-menu__link { opacity: 1; transform: none; animation: none !important; }
+  }
+</style>
+
+<script>
+  const header = document.getElementById('site-header')!;
+  const menu = document.getElementById('mobile-menu')!;
+  const openBtn = document.getElementById('menu-toggle')!;
+  const closeBtn = document.getElementById('menu-close')!;
+
+  /* --- Header background once scrolled past the hero edge ------------- */
+  const onScroll = () => header.classList.toggle('is-stuck', window.scrollY > 24);
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  /* --- Mobile menu, with a focus trap --------------------------------- */
+  const FOCUSABLE = 'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])';
+  let lastFocused: HTMLElement | null = null;
+
+  const openMenu = () => {
+    lastFocused = document.activeElement as HTMLElement;
+    menu.hidden = false;
+    menu.classList.add('is-open');
+    openBtn.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+    (menu.querySelector(FOCUSABLE) as HTMLElement | null)?.focus();
+  };
+
+  const closeMenu = () => {
+    menu.classList.remove('is-open');
+    menu.hidden = true;
+    openBtn.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+    lastFocused?.focus();
+  };
+
+  openBtn.addEventListener('click', openMenu);
+  closeBtn.addEventListener('click', closeMenu);
+
+  document.addEventListener('keydown', (e) => {
+    if (menu.hidden) return;
+    if (e.key === 'Escape') { closeMenu(); return; }
+    if (e.key !== 'Tab') return;
+    // Keep Tab inside the open menu.
+    const items = [...menu.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => el.offsetParent !== null);
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+
+  // Close if the viewport grows into the desktop layout.
+  window.matchMedia('(min-width: 1024px)').addEventListener('change', (e) => {
+    if (e.matches && !menu.hidden) closeMenu();
+  });
+</script>

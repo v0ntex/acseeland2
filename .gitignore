@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.astro/
+.DS_Store
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Vorschau-Bundle (wird bei Bedarf neu erzeugt)
+preview/

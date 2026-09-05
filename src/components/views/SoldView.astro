@@ -1,0 +1,101 @@
+---
+import Icon from '../Icon.astro';
+import SoldCard from '../SoldCard.astro';
+import { getSoldByYear, getSoldVehicles } from '../../data/queries';
+import { useTranslations, localePath } from '../../i18n/utils';
+import type { Lang } from '../../i18n/ui';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const p = localePath(lang);
+const groups = await getSoldByYear();
+const soldVehicles = await getSoldVehicles();
+---
+<div class="page-head">
+  <div class="container">
+    <p class="eyebrow">{t('soldTeaser.eyebrow')}</p>
+    <h1 class="title-xl page-head__title">{t('sold.title')}</h1>
+    <p class="lead page-head__lead">{t('sold.lead')}</p>
+    <p class="page-head__count num">
+      {soldVehicles.length} {lang === 'de' ? 'Fahrzeuge im Archiv' : 'vehicles in the archive'}
+    </p>
+  </div>
+</div>
+
+{groups.map((group) => (
+  <section class="section section--tight archive">
+    <div class="container">
+      <div class="archive__head" data-reveal>
+        <h2 class="archive__year num">{group.year}</h2>
+        <span class="archive__rule" aria-hidden="true"></span>
+        <p class="archive__n num">
+          {group.items.length} {group.items.length === 1
+            ? (lang === 'de' ? 'Fahrzeug' : 'vehicle')
+            : (lang === 'de' ? 'Fahrzeuge' : 'vehicles')}
+        </p>
+      </div>
+
+      <div class="archive__grid">
+        {group.items.map((item, i) => <SoldCard item={item} lang={lang} index={i} />)}
+      </div>
+    </div>
+  </section>
+))}
+
+<section class="section sold-cta">
+  <div class="container-narrow sold-cta__inner" data-reveal>
+    <img src="/brand/acs-emblem-white.svg" alt="" width="64" height="31" class="sold-cta__mark" />
+    <p class="sold-cta__text">{t('sold.note')}</p>
+    <a href={p('sourcing')} class="btn btn--red">{t('sold.cta')}<Icon name="arrow-right" size={17} /></a>
+  </div>
+</section>
+
+<style>
+  .page-head {
+    padding-top: calc(7.5rem + env(safe-area-inset-top));
+    padding-bottom: var(--space-l);
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+  }
+  @media (min-width: 1024px) { .page-head { padding-top: 10rem; padding-bottom: var(--space-xl); } }
+  .page-head__title { margin-top: var(--space-s); max-width: 16ch; }
+  .page-head__lead { margin-top: var(--space-s); max-width: 58ch; }
+  .page-head__count {
+    margin-top: var(--space-m);
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--acs-red);
+  }
+
+  .archive + .archive { padding-top: 0; }
+
+  .archive__head { display: flex; align-items: center; gap: var(--space-m); margin-bottom: var(--space-l); }
+  .archive__year { font-size: var(--step-3); font-weight: 800; letter-spacing: -0.03em; line-height: 1; flex: none; }
+  .archive__rule { flex: 1; height: 1px; background: var(--line); }
+  .archive__n {
+    flex: none;
+    font-size: var(--step--1);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+  }
+
+  /* Editorial archive grid: the best cars take a double-width tile */
+  .archive__grid { display: grid; gap: var(--space-l) var(--space-m); }
+  @media (min-width: 700px) {
+    .archive__grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 1024px) {
+    .archive__grid { grid-template-columns: repeat(3, 1fr); }
+    .archive__grid :global(.sold-card--wide) { grid-column: span 2; }
+  }
+
+  .sold-cta { border-top: 1px solid var(--line); text-align: center; }
+  .sold-cta__inner { display: grid; justify-items: center; gap: var(--space-m); }
+  .sold-cta__mark { opacity: 0.4; }
+  .sold-cta__text { font-size: var(--step-1); font-weight: 300; color: var(--text-muted); max-width: 44ch; line-height: 1.5; }
+</style>

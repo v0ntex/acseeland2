@@ -1,0 +1,156 @@
+---
+import Icon from './Icon.astro';
+import type { Vehicle } from '../data/queries';
+import { useTranslations, formatPrice, formatKm, formatNumber, vehiclePath } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
+
+interface Props { vehicle: Vehicle; lang: Lang; large?: boolean; index?: number; }
+const { vehicle: v, lang, large = false, index = 0 } = Astro.props;
+const t = useTranslations(lang);
+const href = vehiclePath(lang, v.id);
+const cover = v.photos[0] ?? null;
+const name = `${v.make} ${v.model}`;
+---
+<article
+  class:list={['card', 'vcard', large && 'vcard--large']}
+  data-reveal
+  style={`--reveal-delay:${Math.min(index, 5) * 70}ms`}
+  data-category={v.category}
+  data-fuel={v.fuel}
+  data-price={v.price ?? ''}
+  data-year={v.year}
+  data-km={v.km}
+>
+  <div class:list={['media', large ? 'media--16-10' : 'media--3-2']}>
+    {cover ? (
+      <img src={cover} alt={`${name} ${v.variant ?? ''}`} loading={index < 2 ? 'eager' : 'lazy'} decoding="async" width="800" height="533" />
+    ) : (
+      <div class="placeholder"><img src="/brand/acs-emblem-white.svg" alt="" width="120" height="59" /></div>
+    )}
+    <span class="vcard__tag">{t(`filter.cat.${v.category}` as any)}</span>
+  </div>
+
+  <div class="vcard__body">
+    <div class="vcard__headline">
+      <h3 class="vcard__name">
+        <a href={href} class="card__link">{name}</a>
+      </h3>
+      {v.variant && <p class="vcard__variant">{v.variant}</p>}
+    </div>
+
+    <p class="vcard__teaser">{v.teaser[lang]}</p>
+
+    <dl class="vcard__specs num">
+      <div><dt>{t('spec.year')}</dt><dd>{v.year}</dd></div>
+      <div><dt>{t('spec.km')}</dt><dd>{formatKm(v.km)}</dd></div>
+      <div><dt>{t('spec.power')}</dt><dd>{formatNumber(v.power)} PS</dd></div>
+    </dl>
+
+    <div class="vcard__foot">
+      <p class="vcard__price num">{formatPrice(v.price, lang)}</p>
+      <span class="vcard__go" aria-hidden="true"><Icon name="arrow-right" size={18} /></span>
+    </div>
+  </div>
+</article>
+
+<style>
+  .vcard { display: flex; flex-direction: column; overflow: hidden; }
+
+  .vcard .media { position: relative; }
+  .vcard__tag {
+    position: absolute;
+    left: var(--space-xs);
+    top: var(--space-xs);
+    z-index: 2;
+    padding: 0.35rem 0.6rem;
+    background: rgba(10, 10, 10, 0.82);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .vcard__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+    flex: 1;
+    padding: var(--space-m);
+  }
+
+  .vcard__name {
+    font-size: var(--step-1);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+  .vcard--large .vcard__name { font-size: var(--step-2); }
+  .vcard__name a { transition: color var(--dur) var(--ease-out); }
+  .card:hover .vcard__name a { color: var(--acs-red); }
+
+  .vcard__variant {
+    margin-top: 0.25rem;
+    font-size: var(--step--1);
+    color: var(--text-subtle);
+    letter-spacing: 0.02em;
+  }
+
+  .vcard__teaser {
+    font-size: var(--step--1);
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .vcard__specs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-2xs);
+    margin: 0;
+    padding-top: var(--space-s);
+    border-top: 1px solid var(--line);
+  }
+  .vcard__specs dt {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    margin-bottom: 0.2rem;
+  }
+  .vcard__specs dd { margin: 0; font-size: var(--step--1); font-weight: 600; color: var(--text); }
+
+  .vcard__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+    margin-top: auto;
+    padding-top: var(--space-s);
+    border-top: 1px solid var(--line);
+  }
+  .vcard__price { font-size: var(--step-1); font-weight: 800; letter-spacing: -0.02em; }
+
+  .vcard__go {
+    display: grid;
+    place-items: center;
+    width: 2.25rem; height: 2.25rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    flex: none;
+    transition: border-color var(--dur) var(--ease-out),
+                color var(--dur) var(--ease-out),
+                background var(--dur) var(--ease-out);
+  }
+  .card:hover .vcard__go {
+    border-color: var(--acs-red);
+    background: var(--acs-red);
+    color: var(--acs-black);
+  }
+</style>

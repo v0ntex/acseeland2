@@ -1,0 +1,181 @@
+---
+import Icon from './Icon.astro';
+import { getLangFromUrl, useTranslations, localePath } from '../i18n/utils';
+import { site } from '../data/site';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const p = localePath(lang);
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="/brand/acs-lockup-white.svg" alt="Auto Center Seeland AG" width="190" height="25" />
+        <p class="footer-tagline">{t('meta.tagline')}</p>
+        <p class="footer-appt">
+          <Icon name="clock" size={15} /> {t('footer.appointmentOnly')}
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h2 class="footer-head">{t('footer.nav')}</h2>
+        <ul class="footer-list">
+          <li><a href={p('vehicles')}>{t('nav.vehicles')}</a></li>
+          <li><a href={p('sold')}>{t('nav.sold')}</a></li>
+          <li><a href={p('sourcing')}>{t('nav.sourcing')}</a></li>
+          <li><a href={p('about')}>{t('nav.about')}</a></li>
+          <li><a href={p('contact')}>{t('nav.contact')}</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h2 class="footer-head">{t('footer.contact')}</h2>
+        <ul class="footer-list">
+          <li><a href={`tel:${site.phoneHref}`}>{site.phone}</a></li>
+          <li><a href={`mailto:${site.email}`}>{site.email}</a></li>
+        </ul>
+        <ul class="footer-list footer-list--plain">
+          {site.offices.map((o) => (
+            <li>{o.street}<br />{o.zip} {o.city}</li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h2 class="footer-head">{t('contact.availability')}</h2>
+        <p class="footer-avail">
+          <Icon name="clock" size={15} />
+          <span>{t('contact.availabilityValue')}</span>
+        </p>
+        <p class="footer-avail-note">{t('contact.availabilityNote')}</p>
+
+        <h2 class="footer-head footer-head--spaced">{t('footer.follow')}</h2>
+        <a href={site.social.instagram} class="footer-social" target="_blank" rel="noopener noreferrer">
+          <Icon name="instagram" size={18} />
+          <span>{site.social.instagramHandle}</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p class="footer-copy">
+        © {year} {site.legalName} · {site.uid} · {t('footer.rights')}
+      </p>
+      <ul class="footer-legal">
+        <li><a href={p('imprint')}>{t('footer.imprint')}</a></li>
+        <li><a href={p('privacy')}>{t('footer.privacy')}</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--line);
+    padding-block: var(--space-xl) var(--space-l);
+    padding-bottom: calc(var(--space-l) + env(safe-area-inset-bottom));
+    background: var(--bg);
+  }
+
+  .footer-top {
+    display: grid;
+    gap: var(--space-l);
+    padding-bottom: var(--space-xl);
+  }
+  @media (min-width: 700px)  { .footer-top { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .footer-top { grid-template-columns: 1.6fr 1fr 1.2fr 1.2fr; gap: var(--space-m); } }
+
+  .footer-brand img { width: 168px; height: auto; }
+  .footer-tagline {
+    margin-top: var(--space-s);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    max-width: 30ch;
+  }
+  .footer-appt {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    margin-top: var(--space-s);
+    font-size: var(--step--1);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--acs-red);
+  }
+
+  .footer-head {
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: var(--space-s);
+  }
+
+  .footer-list { list-style: none; padding: 0; margin: 0 0 var(--space-s); display: grid; gap: 0.15rem; }
+  .footer-list a {
+    display: inline-block;
+    /* Padding lifts the hit area past the 24px pointer-target minimum */
+    padding-block: 0.3rem;
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    transition: color var(--dur) var(--ease-out);
+  }
+  .footer-list a:hover { color: var(--acs-red); }
+  /* Link lists sit tight because each link carries its own padding; plain
+     lists (the two addresses) need real separation between entries. */
+  .footer-list--plain { gap: var(--space-s); }
+  .footer-list--plain li { color: var(--text-muted); font-size: var(--step--1); line-height: 1.5; }
+
+  .footer-avail {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: var(--step--1);
+    font-weight: 700;
+    color: var(--acs-red);
+  }
+  .footer-avail-note {
+    margin-top: var(--space-2xs);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+    line-height: 1.55;
+    max-width: 34ch;
+  }
+  .footer-head--spaced { margin-top: var(--space-m); }
+
+  .footer-social {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    min-height: 2.75rem;
+    font-size: var(--step--1);
+    color: var(--text-muted);
+    transition: color var(--dur) var(--ease-out);
+  }
+  .footer-social:hover { color: var(--acs-red); }
+
+  .footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+    padding-top: var(--space-m);
+    border-top: 1px solid var(--line);
+  }
+  .footer-copy { color: var(--text-subtle); font-size: var(--step--1); }
+  .footer-legal { display: flex; gap: var(--space-m); list-style: none; padding: 0; margin: 0; }
+  .footer-legal a {
+    display: inline-block;
+    padding-block: 0.3rem;
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+    transition: color var(--dur) var(--ease-out);
+  }
+  .footer-legal a:hover { color: var(--acs-red); }
+</style>

@@ -1,0 +1,104 @@
+---
+import type { SoldVehicle } from '../data/queries';
+import type { Lang } from '../i18n/ui';
+import { useTranslations } from '../i18n/utils';
+
+interface Props { item: SoldVehicle; lang: Lang; index?: number; }
+const { item, lang, index = 0 } = Astro.props;
+const t = useTranslations(lang);
+const cover = item.photos[0] ?? null;
+const name = `${item.make} ${item.model}`;
+---
+<figure
+  class:list={['sold-card', item.wide && 'sold-card--wide']}
+  data-reveal
+  style={`--reveal-delay:${Math.min(index, 6) * 65}ms`}
+>
+  <div class="media media--4-3">
+    {cover ? (
+      <img src={cover} alt={`${name} ${item.variant ?? ''}`} loading="lazy" decoding="async" width="900" height="600" />
+    ) : (
+      <div class="placeholder"><img src="/brand/acs-emblem-white.svg" alt="" width="120" height="59" /></div>
+    )}
+    <span class="sold-card__stamp">{t('sold.year')} {item.soldYear}</span>
+  </div>
+
+  <figcaption class="sold-card__cap">
+    <p class="sold-card__ref num">{item.ref}</p>
+    <h3 class="sold-card__name">{name}</h3>
+    {item.variant && <p class="sold-card__variant">{item.variant} · {item.year}</p>}
+    <p class="sold-card__note">{item.note[lang]}</p>
+    <p class="sold-card__meta">
+      <span>{item.colour[lang]}</span>
+      {item.destination && <><span class="sold-card__dot" aria-hidden="true">·</span><span>{item.destination[lang]}</span></>}
+    </p>
+  </figcaption>
+</figure>
+
+<style>
+  .sold-card { margin: 0; }
+  /* Cards keep a uniform 4:3 so captions align in any grid. Only the archive
+     grid — where a wide card spans two columns — switches to a wider crop. */
+  :global(.archive__grid) .sold-card--wide .media { aspect-ratio: 16 / 9; }
+  .sold-card .media {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    position: relative;
+    transition: border-color var(--dur) var(--ease-out);
+  }
+  .sold-card:hover .media { border-color: var(--line-strong); }
+  .sold-card .media > img,
+  .sold-card .media > .placeholder { transition: transform var(--dur-slow) var(--ease-out); }
+  .sold-card:hover .media > img,
+  .sold-card:hover .media > .placeholder { transform: scale(1.03); }
+
+  /* "Sold" is stated in words, never by colour alone */
+  .sold-card__stamp {
+    position: absolute;
+    right: var(--space-xs);
+    top: var(--space-xs);
+    z-index: 2;
+    padding: 0.35rem 0.6rem;
+    background: rgba(10, 10, 10, 0.85);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid var(--acs-red);
+    border-radius: var(--radius);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--acs-red);
+    line-height: 1;
+  }
+
+  .sold-card__cap { padding-top: var(--space-s); }
+  .sold-card__ref {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--text-subtle);
+    margin-bottom: 0.4rem;
+  }
+  .sold-card__name { font-size: var(--step-1); font-weight: 700; letter-spacing: -0.02em; }
+  .sold-card--wide .sold-card__name { font-size: var(--step-2); }
+  .sold-card__variant { margin-top: 0.2rem; font-size: var(--step--1); color: var(--text-subtle); }
+  .sold-card__note {
+    margin-top: var(--space-xs);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+    line-height: 1.6;
+    max-width: 52ch;
+  }
+  .sold-card__meta {
+    margin-top: var(--space-xs);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+  }
+  .sold-card__dot { color: var(--line-strong); }
+</style>

@@ -1,0 +1,11 @@
+---
+import Base from '../../layouts/Base.astro';
+import View from '../../components/views/SourcingView.astro';
+import { useTranslations } from '../../i18n/utils';
+
+const lang = 'en' as const;
+const t = useTranslations(lang);
+---
+<Base title={`${t('sourcing.title')} — Auto Center Seeland AG`} description={t('sourcing.lead')}>
+  <View lang={lang} />
+</Base>

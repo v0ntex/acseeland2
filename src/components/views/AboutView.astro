@@ -1,0 +1,112 @@
+---
+import Icon from '../Icon.astro';
+import { useTranslations, localePath, formatNumber } from '../../i18n/utils';
+import { site } from '../../data/site';
+import type { Lang } from '../../i18n/ui';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const p = localePath(lang);
+const years = new Date().getFullYear() - site.founded;
+/* Im Frontmatter formatiert — Regex-Literale gehören nicht ins Template. */
+const soldLabel = site.vehiclesSold ? `${formatNumber(site.vehiclesSold)}+` : null;
+
+const values = [
+  { icon: 'shield',   title: t('about.v1.title'), body: t('about.v1.body') },
+  { icon: 'check',    title: t('about.v2.title'), body: t('about.v2.body') },
+  { icon: 'settings', title: t('about.v3.title'), body: t('about.v3.body') },
+] as const;
+---
+<div class="page-head">
+  <div class="container">
+    <p class="eyebrow">{t('nav.about')}</p>
+    <h1 class="title-xl page-head__title">{t('about.title')}</h1>
+    <p class="lead page-head__lead">{t('about.lead', { year: site.founded })}</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container about__body">
+    <div class="about__text" data-reveal>
+      <p class="about__para about__para--lead">{t('about.p1', { year: site.founded })}</p>
+      <p class="about__para">{t('about.p2')}</p>
+      <p class="about__para">{t('about.p3')}</p>
+    </div>
+
+    <aside class="about__facts" data-reveal>
+      <dl class="facts num">
+        <div><dt>{lang === 'de' ? 'Gegründet' : 'Founded'}</dt><dd>{site.founded}</dd></div>
+        <div><dt>{t('stats.years')}</dt><dd>{years}+</dd></div>
+        {soldLabel && <div><dt>{t('stats.sold')}</dt><dd>{soldLabel}</dd></div>}
+        <div><dt>{lang === 'de' ? 'Sprachen' : 'Languages'}</dt><dd class="facts__text">DE · FR · EN</dd></div>
+        <div><dt>UID</dt><dd class="facts__text">{site.uid}</dd></div>
+      </dl>
+    </aside>
+  </div>
+</section>
+
+<section class="section values">
+  <div class="container">
+    <h2 class="title-l values__title" data-reveal>{t('about.values.title')}</h2>
+    <div class="grid grid--3">
+      {values.map((v, i) => (
+        <div class="card value" data-reveal style={`--reveal-delay:${i * 90}ms`}>
+          <span class="value__icon"><Icon name={v.icon} size={20} /></span>
+          <h3 class="title-xs">{v.title}</h3>
+          <p class="value__body">{v.body}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<section class="section about__cta">
+  <div class="container-narrow about__cta-inner" data-reveal>
+    <h2 class="title-m">{t('contact.appointmentTitle')}</h2>
+    <p class="about__cta-text">{t('contact.appointmentBody')}</p>
+    <a href={p('contact')} class="btn btn--red">{t('nav.appointment')}<Icon name="arrow-right" size={17} /></a>
+  </div>
+</section>
+
+<style>
+  .page-head {
+    padding-top: calc(7.5rem + env(safe-area-inset-top));
+    padding-bottom: var(--space-l);
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+  }
+  @media (min-width: 1024px) { .page-head { padding-top: 10rem; padding-bottom: var(--space-xl); } }
+  .page-head__title { margin-top: var(--space-s); max-width: 18ch; }
+  .page-head__lead { margin-top: var(--space-s); }
+
+  .about__body { display: grid; gap: var(--space-xl); }
+  @media (min-width: 1024px) { .about__body { grid-template-columns: minmax(0, 1.7fr) minmax(16rem, 1fr); gap: var(--space-2xl); align-items: start; } }
+
+  .about__para { color: var(--text-muted); line-height: 1.8; max-width: 68ch; }
+  .about__para + .about__para { margin-top: var(--space-m); }
+  .about__para--lead { font-size: var(--step-1); font-weight: 300; color: var(--text); line-height: 1.6; }
+
+  .facts { display: grid; gap: 0; margin: 0; border-top: 1px solid var(--line); }
+  .facts > div { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-s); padding: var(--space-s) 0; border-bottom: 1px solid var(--line); }
+  .facts dt { font-size: var(--step--1); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-subtle); }
+  .facts dd { margin: 0; font-size: var(--step-2); font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+  .facts__text { font-size: var(--step-0) !important; font-weight: 700 !important; }
+
+  .values { border-top: 1px solid var(--line); }
+  .values__title { margin-bottom: var(--space-l); }
+  .value { display: flex; flex-direction: column; gap: var(--space-s); padding: var(--space-m); }
+  @media (min-width: 900px) { .value { padding: var(--space-l) var(--space-m); } }
+  .value__icon {
+    display: grid; place-items: center;
+    width: 2.75rem; height: 2.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    color: var(--acs-red);
+  }
+  .value__body { color: var(--text-muted); font-size: var(--step--1); line-height: 1.7; }
+
+  .about__cta { border-top: 1px solid var(--line); text-align: center; }
+  .about__cta-inner { display: grid; justify-items: center; gap: var(--space-m); }
+  .about__cta-text { color: var(--text-muted); max-width: 56ch; line-height: 1.7; }
+</style>

@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import View from '../components/views/LegalView.astro';
+import { useTranslations } from '../i18n/utils';
+
+const lang = 'de' as const;
+const t = useTranslations(lang);
+---
+<Base title={`${t('imprint.title')} — Auto Center Seeland AG`} description={t('meta.tagline')}>
+  <View lang={lang} kind="imprint" />
+</Base>
