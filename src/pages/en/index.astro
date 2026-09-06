@@ -1,11 +1,11 @@
 ---
 import Base from '../../layouts/Base.astro';
 import View from '../../components/views/HomeView.astro';
-import { useTranslations } from '../../i18n/utils';
+import { getHomeContent } from '../../data/content';
 
 const lang = 'en' as const;
-const t = useTranslations(lang);
+const home = await getHomeContent(lang);
 ---
-<Base title={t('meta.home.title')} description={t('meta.home.desc')}>
+<Base title={home.meta.title} description={home.meta.description}>
   <View lang={lang} />
 </Base>

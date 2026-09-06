@@ -1,7 +1,8 @@
 ---
 import Icon from './Icon.astro';
 import { useTranslations } from '../i18n/utils';
-import { site } from '../data/site';
+import { getSite } from '../data/content';
+import { formEndpoint } from '../data/config';
 import type { Lang } from '../i18n/ui';
 
 interface Props {
@@ -15,6 +16,7 @@ interface Props {
 const { lang, variant = 'contact', subject = '', id = 'contact-form' } = Astro.props;
 const t = useTranslations(lang);
 const sourcing = variant === 'sourcing';
+const site = await getSite();
 ---
 <form
   class="acs-form"
@@ -22,9 +24,9 @@ const sourcing = variant === 'sourcing';
   novalidate
   data-variant={variant}
   data-email={site.email}
-  data-endpoint={site.formEndpoint ?? ''}
-  action={site.formEndpoint ?? undefined}
-  method={site.formEndpoint ? 'POST' : undefined}
+  data-endpoint={formEndpoint ?? ''}
+  action={formEndpoint ?? undefined}
+  method={formEndpoint ? 'POST' : undefined}
 >
   <!-- Error summary: focused after a failed submit, links to each bad field -->
   <div class="form-summary" id={`${id}-summary`} role="alert" tabindex="-1" hidden>
@@ -97,7 +99,7 @@ const sourcing = variant === 'sourcing';
       {sourcing ? t('form.submitEnquiry') : t('form.submit')}
       <Icon name="arrow-right" size={17} />
     </button>
-    {!site.formEndpoint && <p class="form-note">{t('form.opensMail')}</p>}
+    {!formEndpoint && <p class="form-note">{t('form.opensMail')}</p>}
   </div>
 
   <!-- Strings the script needs, kept out of the markup flow -->

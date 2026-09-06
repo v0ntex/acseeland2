@@ -1,44 +1,49 @@
 ---
 import Icon from '../Icon.astro';
 import { useTranslations, localePath, formatNumber } from '../../i18n/utils';
-import { site } from '../../data/site';
+import { getSite, getAboutPageContent, getContactPageContent, getHomeContent } from '../../data/content';
 import type { Lang } from '../../i18n/ui';
 
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const p = localePath(lang);
+const site = await getSite();
+const about = await getAboutPageContent(lang, site);
+const contact = await getContactPageContent(lang);
+const home = await getHomeContent(lang, site);
 const years = new Date().getFullYear() - site.founded;
 /* Im Frontmatter formatiert — Regex-Literale gehören nicht ins Template. */
 const soldLabel = site.vehiclesSold ? `${formatNumber(site.vehiclesSold)}+` : null;
 
-const values = [
-  { icon: 'shield',   title: t('about.v1.title'), body: t('about.v1.body') },
-  { icon: 'check',    title: t('about.v2.title'), body: t('about.v2.body') },
-  { icon: 'settings', title: t('about.v3.title'), body: t('about.v3.body') },
-] as const;
+const icons = ['shield', 'check', 'settings'] as const;
+const values = about.values.map((v, i) => ({
+  icon: icons[i],
+  title: v.title,
+  body: v.body,
+}));
 ---
 <div class="page-head">
   <div class="container">
     <p class="eyebrow">{t('nav.about')}</p>
-    <h1 class="title-xl page-head__title">{t('about.title')}</h1>
-    <p class="lead page-head__lead">{t('about.lead', { year: site.founded })}</p>
+    <h1 class="title-xl page-head__title">{about.title}</h1>
+    <p class="lead page-head__lead">{about.lead}</p>
   </div>
 </div>
 
 <section class="section">
   <div class="container about__body">
     <div class="about__text" data-reveal>
-      <p class="about__para about__para--lead">{t('about.p1', { year: site.founded })}</p>
-      <p class="about__para">{t('about.p2')}</p>
-      <p class="about__para">{t('about.p3')}</p>
+      {about.paragraphs.map((para, i) => (
+        <p class:list={['about__para', i === 0 && 'about__para--lead']}>{para}</p>
+      ))}
     </div>
 
     <aside class="about__facts" data-reveal>
       <dl class="facts num">
         <div><dt>{lang === 'de' ? 'Gegründet' : 'Founded'}</dt><dd>{site.founded}</dd></div>
-        <div><dt>{t('stats.years')}</dt><dd>{years}+</dd></div>
-        {soldLabel && <div><dt>{t('stats.sold')}</dt><dd>{soldLabel}</dd></div>}
+        <div><dt>{home.stats.yearsLabel}</dt><dd>{years}+</dd></div>
+        {soldLabel && <div><dt>{home.stats.soldLabel}</dt><dd>{soldLabel}</dd></div>}
         <div><dt>{lang === 'de' ? 'Sprachen' : 'Languages'}</dt><dd class="facts__text">DE · FR · EN</dd></div>
         <div><dt>UID</dt><dd class="facts__text">{site.uid}</dd></div>
       </dl>
@@ -48,7 +53,7 @@ const values = [
 
 <section class="section values">
   <div class="container">
-    <h2 class="title-l values__title" data-reveal>{t('about.values.title')}</h2>
+    <h2 class="title-l values__title" data-reveal>{about.valuesTitle}</h2>
     <div class="grid grid--3">
       {values.map((v, i) => (
         <div class="card value" data-reveal style={`--reveal-delay:${i * 90}ms`}>
@@ -63,8 +68,8 @@ const values = [
 
 <section class="section about__cta">
   <div class="container-narrow about__cta-inner" data-reveal>
-    <h2 class="title-m">{t('contact.appointmentTitle')}</h2>
-    <p class="about__cta-text">{t('contact.appointmentBody')}</p>
+    <h2 class="title-m">{contact.appointmentTitle}</h2>
+    <p class="about__cta-text">{contact.appointmentBody}</p>
     <a href={p('contact')} class="btn btn--red">{t('nav.appointment')}<Icon name="arrow-right" size={17} /></a>
   </div>
 </section>

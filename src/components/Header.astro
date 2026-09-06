@@ -1,8 +1,9 @@
 ---
 import Icon from './Icon.astro';
 import { getLangFromUrl, useTranslations, localePath, alternatePath } from '../i18n/utils';
-import { site } from '../data/site';
+import { getSite } from '../data/content';
 
+const site = await getSite();
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const p = localePath(lang);

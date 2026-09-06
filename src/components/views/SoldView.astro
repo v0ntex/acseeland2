@@ -2,6 +2,7 @@
 import Icon from '../Icon.astro';
 import SoldCard from '../SoldCard.astro';
 import { getSoldByYear, getSoldVehicles } from '../../data/queries';
+import { getSoldPageContent, getHomeContent } from '../../data/content';
 import { useTranslations, localePath } from '../../i18n/utils';
 import type { Lang } from '../../i18n/ui';
 
@@ -9,14 +10,16 @@ interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const p = localePath(lang);
+const sp = await getSoldPageContent(lang);
+const home = await getHomeContent(lang);
 const groups = await getSoldByYear();
 const soldVehicles = await getSoldVehicles();
 ---
 <div class="page-head">
   <div class="container">
-    <p class="eyebrow">{t('soldTeaser.eyebrow')}</p>
-    <h1 class="title-xl page-head__title">{t('sold.title')}</h1>
-    <p class="lead page-head__lead">{t('sold.lead')}</p>
+    <p class="eyebrow">{home.soldTeaser.eyebrow}</p>
+    <h1 class="title-xl page-head__title">{sp.title}</h1>
+    <p class="lead page-head__lead">{sp.lead}</p>
     <p class="page-head__count num">
       {soldVehicles.length} {lang === 'de' ? 'Fahrzeuge im Archiv' : 'vehicles in the archive'}
     </p>
@@ -46,8 +49,8 @@ const soldVehicles = await getSoldVehicles();
 <section class="section sold-cta">
   <div class="container-narrow sold-cta__inner" data-reveal>
     <img src="/brand/acs-emblem-white.svg" alt="" width="64" height="31" class="sold-cta__mark" />
-    <p class="sold-cta__text">{t('sold.note')}</p>
-    <a href={p('sourcing')} class="btn btn--red">{t('sold.cta')}<Icon name="arrow-right" size={17} /></a>
+    <p class="sold-cta__text">{sp.note}</p>
+    <a href={p('sourcing')} class="btn btn--red">{sp.cta}<Icon name="arrow-right" size={17} /></a>
   </div>
 </section>
 

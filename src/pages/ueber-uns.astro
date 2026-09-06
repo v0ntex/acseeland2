@@ -1,12 +1,12 @@
 ---
 import Base from '../layouts/Base.astro';
 import View from '../components/views/AboutView.astro';
-import { site } from '../data/site';
-import { useTranslations } from '../i18n/utils';
+import { getAboutPageContent, getSite } from '../data/content';
 
 const lang = 'de' as const;
-const t = useTranslations(lang);
+const site = await getSite();
+const about = await getAboutPageContent(lang, site);
 ---
-<Base title={`${t('about.title')} — Auto Center Seeland AG`} description={t('about.p1', { year: site.founded })}>
+<Base title={`${about.title} — ${site.legalName}`} description={about.paragraphs[0] ?? about.lead}>
   <View lang={lang} />
 </Base>

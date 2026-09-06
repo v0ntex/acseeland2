@@ -2,6 +2,7 @@
 import Icon from '../Icon.astro';
 import VehicleCard from '../VehicleCard.astro';
 import { getVehicles } from '../../data/queries';
+import { getVehiclesPageContent } from '../../data/content';
 import { useTranslations, localePath } from '../../i18n/utils';
 import type { Lang } from '../../i18n/ui';
 
@@ -9,6 +10,7 @@ interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const p = localePath(lang);
+const vp = await getVehiclesPageContent(lang);
 
 const vehicles = await getVehicles();
 
@@ -22,8 +24,8 @@ const availableFuels = fuels.filter((f) => vehicles.some((v) => v.fuel === f));
 <div class="page-head">
   <div class="container">
     <p class="eyebrow">{t('nav.vehicles')}</p>
-    <h1 class="title-xl page-head__title">{t('vehicles.title')}</h1>
-    <p class="lead page-head__lead">{t('vehicles.lead')}</p>
+    <h1 class="title-xl page-head__title">{vp.title}</h1>
+    <p class="lead page-head__lead">{vp.lead}</p>
   </div>
 </div>
 
@@ -93,8 +95,8 @@ const availableFuels = fuels.filter((f) => vehicles.some((v) => v.fuel === f));
     <!-- ------------------------------------------------ Empty state -->
     <div class="empty" id="empty-state" hidden>
       <img src="/brand/acs-emblem-white.svg" alt="" width="64" height="31" class="empty__mark" />
-      <p class="empty__text">{t('vehicles.empty')}</p>
-      <a href={p('sourcing')} class="btn btn--red">{t('vehicles.emptyCta')}<Icon name="arrow-right" size={17} /></a>
+      <p class="empty__text">{vp.empty}</p>
+      <a href={p('sourcing')} class="btn btn--red">{vp.emptyCta}<Icon name="arrow-right" size={17} /></a>
     </div>
   </div>
 </section>

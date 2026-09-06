@@ -4,22 +4,24 @@ import Icon from './Icon.astro';
 import heroImg from '../assets/hero-veyron.jpg';
 import { useTranslations, localePath, formatNumber } from '../i18n/utils';
 import type { Lang } from '../i18n/ui';
-import { site } from '../data/site';
+import { getSite, getHomeContent } from '../data/content';
 
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const p = localePath(lang);
+const site = await getSite();
+const home = await getHomeContent(lang, site);
 const years = new Date().getFullYear() - site.founded;
 
 /* Kennzahlen. Einträge ohne Wert werden weggelassen, statt geraten zu werden. */
 const stats = [
-  { label: t('stats.years'), value: `${years}+`, big: true },
+  { label: home.stats.yearsLabel, value: `${years}+`, big: true },
   site.vehiclesSold
-    ? { label: t('stats.sold'), value: `${formatNumber(site.vehiclesSold)}+`, big: true }
+    ? { label: home.stats.soldLabel, value: `${formatNumber(site.vehiclesSold)}+`, big: true }
     : null,
-  { label: t('stats.viewing'), value: t('stats.viewingValue'), big: false },
-  { label: t('stats.region'), value: t('stats.regionValue'), big: false },
+  { label: home.stats.viewingLabel, value: home.stats.viewingValue, big: false },
+  { label: home.stats.regionLabel, value: home.stats.regionValue, big: false },
 ].filter(Boolean) as { label: string; value: string; big: boolean }[];
 ---
 <section class="hero">
@@ -38,19 +40,19 @@ const stats = [
   </div>
 
   <div class="hero__content container">
-    <p class="eyebrow hero__eyebrow">{t('hero.eyebrow', { year: site.founded })}</p>
+    <p class="eyebrow hero__eyebrow">{home.hero.eyebrow}</p>
 
     <h1 class="hero__title">
-      <span class="hero__line">{t('hero.title.1')}</span>
-      <span class="hero__line">{t('hero.title.2')}</span>
-      <span class="hero__line hero__line--accent">{t('hero.title.3')}</span>
+      <span class="hero__line">{home.hero.title1}</span>
+      <span class="hero__line">{home.hero.title2}</span>
+      <span class="hero__line hero__line--accent">{home.hero.title3}</span>
     </h1>
 
-    <p class="hero__lead">{t('hero.lead')}</p>
+    <p class="hero__lead">{home.hero.lead}</p>
 
     <div class="hero__actions">
-      <a href={p('vehicles')} class="btn">{t('hero.cta')}<Icon name="arrow-right" size={17} /></a>
-      <a href={p('contact')} class="btn btn--ghost">{t('hero.cta2')}</a>
+      <a href={p('vehicles')} class="btn">{home.hero.cta}<Icon name="arrow-right" size={17} /></a>
+      <a href={p('contact')} class="btn btn--ghost">{home.hero.cta2}</a>
     </div>
   </div>
 

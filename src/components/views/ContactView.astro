@@ -1,20 +1,22 @@
 ---
 import Icon from '../Icon.astro';
 import ContactForm from '../ContactForm.astro';
-import { site } from '../../data/site';
+import { getSite, getContactPageContent } from '../../data/content';
 import { useTranslations } from '../../i18n/utils';
 import type { Lang } from '../../i18n/ui';
 
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const t = useTranslations(lang);
+const site = await getSite();
+const contact = await getContactPageContent(lang);
 const maps = (q: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
 ---
 <div class="page-head">
   <div class="container">
     <p class="eyebrow">{t('nav.contact')}</p>
-    <h1 class="title-xl page-head__title">{t('contact.title')}</h1>
-    <p class="lead page-head__lead">{t('contact.lead')}</p>
+    <h1 class="title-xl page-head__title">{contact.title}</h1>
+    <p class="lead page-head__lead">{contact.lead}</p>
   </div>
 </div>
 
@@ -24,8 +26,8 @@ const maps = (q: string) => `https://www.google.com/maps/search/?api=1&query=${e
     <div class="notice" data-reveal>
       <span class="notice__icon"><Icon name="clock" size={22} /></span>
       <div>
-        <h2 class="title-xs">{t('contact.appointmentTitle')}</h2>
-        <p class="notice__body">{t('contact.appointmentBody')}</p>
+        <h2 class="title-xs">{contact.appointmentTitle}</h2>
+        <p class="notice__body">{contact.appointmentBody}</p>
       </div>
     </div>
   </div>
@@ -52,10 +54,12 @@ const maps = (q: string) => `https://www.google.com/maps/search/?api=1&query=${e
             <span><span class="contact__label">WhatsApp</span><span class="contact__value">{t('contact.whatsappValue')}</span></span>
           </a>
         )}
-        <a href={site.social.instagram} class="contact__row" target="_blank" rel="noopener noreferrer">
-          <Icon name="instagram" size={18} />
-          <span><span class="contact__label">Instagram</span><span class="contact__value">{site.social.instagramHandle}</span></span>
-        </a>
+        {site.social.instagram && (
+          <a href={site.social.instagram} class="contact__row" target="_blank" rel="noopener noreferrer">
+            <Icon name="instagram" size={18} />
+            <span><span class="contact__label">Instagram</span><span class="contact__value">{site.social.instagramHandle}</span></span>
+          </a>
+        )}
       </div>
 
       <div class="contact__block">
@@ -75,15 +79,15 @@ const maps = (q: string) => `https://www.google.com/maps/search/?api=1&query=${e
         <h2 class="contact__h2">{t('contact.availability')}</h2>
         <p class="avail">
           <Icon name="clock" size={17} />
-          <span>{t('contact.availabilityValue')}</span>
+          <span>{contact.availabilityValue}</span>
         </p>
-        <p class="avail__note">{t('contact.availabilityNote')}</p>
+        <p class="avail__note">{contact.availabilityNote}</p>
       </div>
     </div>
 
     <!-- ------------------------------------------------ Form -->
     <div class="contact__form" data-reveal>
-      <h2 class="title-m contact__form-title">{t('contact.formTitle')}</h2>
+      <h2 class="title-m contact__form-title">{contact.formTitle}</h2>
       <ContactForm lang={lang} id="contact-page-form" />
     </div>
   </div>

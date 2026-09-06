@@ -1,5 +1,6 @@
 ---
-import { site } from '../../data/site';
+import { toHTML } from '@portabletext/to-html';
+import { getSite, getLegalContent } from '../../data/content';
 import { useTranslations, localePath } from '../../i18n/utils';
 import type { Lang } from '../../i18n/ui';
 
@@ -7,7 +8,11 @@ interface Props { lang: Lang; kind: 'imprint' | 'privacy'; }
 const { lang, kind } = Astro.props;
 const t = useTranslations(lang);
 const p = localePath(lang);
-const title = kind === 'imprint' ? t('imprint.title') : t('privacy.title');
+const site = await getSite();
+const legal = await getLegalContent(kind, lang);
+const title = legal.title;
+const hasStudioBody = legal.body.length > 0;
+const bodyHtml = hasStudioBody ? toHTML(legal.body as never) : '';
 ---
 <div class="page-head">
   <div class="container-narrow">
@@ -18,7 +23,9 @@ const title = kind === 'imprint' ? t('imprint.title') : t('privacy.title');
 
 <section class="section">
   <div class="container-narrow prose">
-    {kind === 'imprint' ? (
+    {hasStudioBody ? (
+      <div set:html={bodyHtml} />
+    ) : kind === 'imprint' ? (
       <>
         <h2>{lang === 'de' ? 'Verantwortlich für den Inhalt' : 'Responsible for the content'}</h2>
         <p>

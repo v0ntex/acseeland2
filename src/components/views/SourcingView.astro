@@ -2,24 +2,27 @@
 import Icon from '../Icon.astro';
 import ContactForm from '../ContactForm.astro';
 import { useTranslations } from '../../i18n/utils';
+import { getSourcingPageContent } from '../../data/content';
 import type { Lang } from '../../i18n/ui';
 
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const t = useTranslations(lang);
+const sourcing = await getSourcingPageContent(lang);
 
-const steps = [
-  { n: '01', icon: 'search',   title: t('sourcing.step1.title'), body: t('sourcing.step1.body') },
-  { n: '02', icon: 'shield',   title: t('sourcing.step2.title'), body: t('sourcing.step2.body') },
-  { n: '03', icon: 'globe',    title: t('sourcing.step3.title'), body: t('sourcing.step3.body') },
-  { n: '04', icon: 'check',    title: t('sourcing.step4.title'), body: t('sourcing.step4.body') },
-] as const;
+const icons = ['search', 'shield', 'globe', 'check'] as const;
+const steps = sourcing.steps.map((s, i) => ({
+  n: String(i + 1).padStart(2, '0'),
+  icon: icons[i],
+  title: s.title,
+  body: s.body,
+}));
 ---
 <div class="page-head">
   <div class="container">
     <p class="eyebrow">{t('nav.sourcing')}</p>
-    <h1 class="title-xl page-head__title">{t('sourcing.title')}</h1>
-    <p class="lead page-head__lead">{t('sourcing.lead')}</p>
+    <h1 class="title-xl page-head__title">{sourcing.title}</h1>
+    <p class="lead page-head__lead">{sourcing.lead}</p>
   </div>
 </div>
 
@@ -43,9 +46,9 @@ const steps = [
 <section class="section sourcing-form" id="request">
   <div class="container-narrow">
     <div data-reveal>
-      <p class="eyebrow">{t('sourcing.formTitle')}</p>
-      <h2 class="title-l sourcing-form__title">{t('sourcing.formTitle')}</h2>
-      <p class="lead sourcing-form__lead">{t('sourcing.formLead')}</p>
+      <p class="eyebrow">{sourcing.formTitle}</p>
+      <h2 class="title-l sourcing-form__title">{sourcing.formTitle}</h2>
+      <p class="lead sourcing-form__lead">{sourcing.formLead}</p>
     </div>
     <div class="sourcing-form__body">
       <ContactForm lang={lang} variant="sourcing" id="sourcing-form" />

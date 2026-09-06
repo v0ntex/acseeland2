@@ -3,7 +3,7 @@ import Icon from '../Icon.astro';
 import VehicleCard from '../VehicleCard.astro';
 import ContactForm from '../ContactForm.astro';
 import { getVehicles, type Vehicle } from '../../data/queries';
-import { site } from '../../data/site';
+import { getSite } from '../../data/content';
 import { useTranslations, localePath, formatPrice, formatKm, formatNumber } from '../../i18n/utils';
 import type { Lang } from '../../i18n/ui';
 
@@ -11,6 +11,7 @@ interface Props { vehicle: Vehicle; lang: Lang; }
 const { vehicle: v, lang } = Astro.props;
 const t = useTranslations(lang);
 const p = localePath(lang);
+const site = await getSite();
 
 const name = `${v.make} ${v.model}`;
 const full = `${name}${v.variant ? ` ${v.variant}` : ''}`;

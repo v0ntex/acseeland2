@@ -1,12 +1,14 @@
 ---
 import Icon from './Icon.astro';
 import { getLangFromUrl, useTranslations, localePath } from '../i18n/utils';
-import { site } from '../data/site';
+import { getSite, getContactPageContent } from '../data/content';
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const p = localePath(lang);
 const year = new Date().getFullYear();
+const site = await getSite();
+const contact = await getContactPageContent(lang);
 ---
 
 <footer class="site-footer">
@@ -48,15 +50,19 @@ const year = new Date().getFullYear();
         <h2 class="footer-head">{t('contact.availability')}</h2>
         <p class="footer-avail">
           <Icon name="clock" size={15} />
-          <span>{t('contact.availabilityValue')}</span>
+          <span>{contact.availabilityValue}</span>
         </p>
-        <p class="footer-avail-note">{t('contact.availabilityNote')}</p>
+        <p class="footer-avail-note">{contact.availabilityNote}</p>
 
-        <h2 class="footer-head footer-head--spaced">{t('footer.follow')}</h2>
-        <a href={site.social.instagram} class="footer-social" target="_blank" rel="noopener noreferrer">
-          <Icon name="instagram" size={18} />
-          <span>{site.social.instagramHandle}</span>
-        </a>
+        {site.social.instagram && (
+          <>
+            <h2 class="footer-head footer-head--spaced">{t('footer.follow')}</h2>
+            <a href={site.social.instagram} class="footer-social" target="_blank" rel="noopener noreferrer">
+              <Icon name="instagram" size={18} />
+              <span>{site.social.instagramHandle}</span>
+            </a>
+          </>
+        )}
       </div>
     </div>
 

@@ -5,6 +5,7 @@ import SectionHead from '../SectionHead.astro';
 import VehicleCard from '../VehicleCard.astro';
 import SoldCard from '../SoldCard.astro';
 import { getFeaturedVehicles, getSoldVehicles } from '../../data/queries';
+import { getHomeContent, getSourcingPageContent } from '../../data/content';
 import { useTranslations, localePath } from '../../i18n/utils';
 import type { Lang } from '../../i18n/ui';
 
@@ -12,12 +13,17 @@ interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const p = localePath(lang);
+const home = await getHomeContent(lang);
+const sourcing = await getSourcingPageContent(lang);
 
-const pillars = [
-  { icon: 'zap',      title: t('intro.1.title'), body: t('intro.1.body'), href: p('vehicles') },
-  { icon: 'shield',   title: t('intro.2.title'), body: t('intro.2.body'), href: p('vehicles') },
-  { icon: 'globe',    title: t('intro.3.title'), body: t('intro.3.body'), href: p('sourcing') },
-] as const;
+const icons = ['zap', 'shield', 'globe'] as const;
+const hrefs = [p('vehicles'), p('vehicles'), p('sourcing')] as const;
+const pillars = home.intro.cards.map((c, i) => ({
+  icon: icons[i],
+  title: c.title,
+  body: c.body,
+  href: hrefs[i],
+}));
 
 const featuredVehicles = await getFeaturedVehicles(3);
 const soldTeaser = (await getSoldVehicles()).slice(0, 3);
@@ -27,7 +33,7 @@ const soldTeaser = (await getSoldVehicles()).slice(0, 3);
 <!-- ------------------------------------------------ What we do -->
 <section class="section" id="intro">
   <div class="container">
-    <SectionHead eyebrow={t('intro.eyebrow')} title={t('intro.title')} />
+    <SectionHead eyebrow={home.intro.eyebrow} title={home.intro.title} />
 
     <div class="grid grid--3">
       {pillars.map((c, i) => (
@@ -36,7 +42,7 @@ const soldTeaser = (await getSoldVehicles()).slice(0, 3);
           <h3 class="pillar__title title-xs">{c.title}</h3>
           <p class="pillar__body">{c.body}</p>
           <span class="link-arrow pillar__link">
-            {t('intro.link')}<Icon name="arrow-right" size={16} />
+            {home.intro.linkLabel}<Icon name="arrow-right" size={16} />
           </span>
         </a>
       ))}
@@ -50,9 +56,9 @@ const soldTeaser = (await getSoldVehicles()).slice(0, 3);
 <section class="section">
   <div class="container">
     <div class="head-row">
-      <SectionHead eyebrow={t('featured.eyebrow')} title={t('featured.title')} lead={t('featured.lead')} />
+      <SectionHead eyebrow={home.featured.eyebrow} title={home.featured.title} lead={home.featured.lead} />
       <a href={p('vehicles')} class="link-arrow head-row__link">
-        {t('featured.all')}<Icon name="arrow-right" size={16} />
+        {home.featured.allLabel}<Icon name="arrow-right" size={16} />
       </a>
     </div>
 
@@ -68,9 +74,9 @@ const soldTeaser = (await getSoldVehicles()).slice(0, 3);
 <section class="section sold-teaser">
   <div class="container">
     <div class="head-row">
-      <SectionHead eyebrow={t('soldTeaser.eyebrow')} title={t('soldTeaser.title')} lead={t('soldTeaser.lead')} />
+      <SectionHead eyebrow={home.soldTeaser.eyebrow} title={home.soldTeaser.title} lead={home.soldTeaser.lead} />
       <a href={p('sold')} class="link-arrow head-row__link">
-        {t('soldTeaser.cta')}<Icon name="arrow-right" size={16} />
+        {home.soldTeaser.cta}<Icon name="arrow-right" size={16} />
       </a>
     </div>
 
@@ -84,10 +90,10 @@ const soldTeaser = (await getSoldVehicles()).slice(0, 3);
 <section class="section cta-band">
   <div class="container-narrow cta-band__inner" data-reveal>
     <img src="/brand/acs-emblem-white.svg" alt="" width="72" height="35" class="cta-band__mark" />
-    <h2 class="title-l">{t('sourcing.title')}</h2>
-    <p class="lead cta-band__lead">{t('sourcing.lead')}</p>
+    <h2 class="title-l">{sourcing.title}</h2>
+    <p class="lead cta-band__lead">{sourcing.lead}</p>
     <div class="cta-band__actions">
-      <a href={p('sourcing')} class="btn btn--red">{t('sourcing.formTitle')}<Icon name="arrow-right" size={17} /></a>
+      <a href={p('sourcing')} class="btn btn--red">{sourcing.formTitle}<Icon name="arrow-right" size={17} /></a>
       <a href={p('contact')} class="btn btn--ghost">{t('nav.appointment')}</a>
     </div>
   </div>
