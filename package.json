@@ -8,7 +8,10 @@
     "build": "astro build",
     "preview": "astro preview",
     "sanity:deploy": "sanity deploy",
-    "sanity:import": "sanity dataset import"
+    "sanity:import": "sanity dataset import",
+    "sanity:seed:build": "node scripts/generate-seed.mjs",
+    "sanity:seed:apply": "sanity dataset import scripts/seed.ndjson production --missing",
+    "sanity:seed": "npm run sanity:seed:build && npm run sanity:seed:apply"
   },
   "dependencies": {
     "@astrojs/react": "^6.0.5",

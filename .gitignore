@@ -11,6 +11,7 @@ dist/
 
 # Sanity
 .sanity/
+scripts/seed.ndjson
 
 # macOS
 .DS_Store
