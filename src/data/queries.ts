@@ -1,30 +1,81 @@
 /* ============================================================================
    ZUGRIFF AUF DIE FAHRZEUGDATEN
    ----------------------------------------------------------------------------
-   Die Fahrzeuge liegen als einzelne Dateien in src/content/vehicles/ und
-   src/content/sold/ — bearbeitbar von Hand oder über das CMS unter /admin.
+   Die Fahrzeuge liegen jetzt in Sanity (Dataset "production"). Redigiert wird
+   über das eingebettete Studio unter /studio.
 
-   Dieses Modul liest sie ein und bringt sie in eine feste Reihenfolge.
-   Die Komponenten greifen nur hierüber zu, nie direkt auf die Dateien.
+   Dieses Modul liest die Daten aus Sanity und bringt sie in die gleiche
+   Struktur wie das alte Content-Collections-Setup — Cards und Detail-Views
+   müssen nicht angepasst werden.
    ========================================================================== */
 
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { sanityClient } from 'sanity:client';
+import { urlFor } from '../sanity/image';
+import { vehiclesQuery, soldQuery } from '../sanity/queries';
 
-/** Ein Fahrzeug im Bestand. `id` ist der Dateiname ohne Endung. */
-export type Vehicle = CollectionEntry<'vehicles'>['data'] & { id: string };
+type Bilingual = { de: string; en: string };
+type BilingualList = { de: string[]; en: string[] };
+
+/** Ein Fahrzeug im Bestand. `id` ist der Slug (URL-Segment). */
+export type Vehicle = {
+  id: string;
+  make: string;
+  model: string;
+  variant?: string;
+  year: number;
+  km: number;
+  price: number | null;
+  fuel: 'petrol' | 'diesel' | 'hybrid' | 'electric';
+  gearbox: 'automatic' | 'manual';
+  power: number;
+  drive: string;
+  category: 'exotic' | 'premium' | 'everyday';
+  featured: boolean;
+  mfk?: string;
+  colour: Bilingual;
+  teaser: Bilingual;
+  description: BilingualList;
+  highlights: BilingualList;
+  /** Fertige Bild-URLs. Das erste Bild ist das Titelbild. */
+  photos: string[];
+};
 
 /** Ein bereits verkauftes Fahrzeug aus dem Archiv. */
-export type SoldVehicle = CollectionEntry<'sold'>['data'] & { id: string };
+export type SoldVehicle = {
+  id: string;
+  ref: string;
+  make: string;
+  model: string;
+  variant?: string;
+  year: number;
+  soldYear: number;
+  wide: boolean;
+  colour: Bilingual;
+  destination?: Bilingual;
+  note: Bilingual;
+  photos: string[];
+};
 
-const flatten = <T extends { id: string; data: object }>(entry: T) =>
-  ({ id: entry.id, ...entry.data }) as never;
+type SanityPhoto = { _key?: string; asset?: { _ref?: string } } | null | undefined;
+
+function mapPhotos(photos: SanityPhoto[] | undefined | null): string[] {
+  if (!photos) return [];
+  return photos
+    .filter((p): p is NonNullable<SanityPhoto> => Boolean(p?.asset?._ref))
+    .map((p) => urlFor(p as never, 2000));
+}
 
 /** Alle Fahrzeuge im Bestand, neuester Jahrgang zuerst. */
 export async function getVehicles(): Promise<Vehicle[]> {
-  const entries = await getCollection('vehicles');
-  return entries
-    .map(flatten)
-    .sort((a: Vehicle, b: Vehicle) => b.year - a.year || a.km - b.km);
+  const raw = await sanityClient.fetch<(Omit<Vehicle, 'photos'> & { photos: SanityPhoto[] })[]>(
+    vehiclesQuery,
+  );
+  return raw.map((v) => ({
+    ...v,
+    featured: Boolean(v.featured),
+    price: v.price ?? null,
+    photos: mapPhotos(v.photos),
+  }));
 }
 
 /** Die auf der Startseite hervorgehobenen Fahrzeuge. */
@@ -36,19 +87,21 @@ export async function getFeaturedVehicles(limit = 3): Promise<Vehicle[]> {
   return (featured.length ? featured : all).slice(0, limit);
 }
 
-/** Ein einzelnes Fahrzeug anhand seiner id. */
+/** Ein einzelnes Fahrzeug anhand seines Slugs. */
 export async function getVehicle(id: string): Promise<Vehicle | undefined> {
   return (await getVehicles()).find((v) => v.id === id);
 }
 
 /** Das Verkauft-Archiv, nach Referenznummer geordnet. */
 export async function getSoldVehicles(): Promise<SoldVehicle[]> {
-  const entries = await getCollection('sold');
-  return entries
-    .map(flatten)
-    .sort((a: SoldVehicle, b: SoldVehicle) =>
-      b.soldYear - a.soldYear || a.ref.localeCompare(b.ref, 'de'),
-    );
+  const raw = await sanityClient.fetch<
+    (Omit<SoldVehicle, 'photos'> & { photos: SanityPhoto[] })[]
+  >(soldQuery);
+  return raw.map((v) => ({
+    ...v,
+    wide: Boolean(v.wide),
+    photos: mapPhotos(v.photos),
+  }));
 }
 
 /** Das Archiv nach Verkaufsjahr gruppiert, neuestes Jahr zuerst. */

@@ -1,4 +1,10 @@
 import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+import sanity from '@sanity/astro';
+import vercel from '@astrojs/vercel';
+
+const projectId = process.env.SANITY_PROJECT_ID ?? 'm7gc2yj5';
+const dataset = process.env.SANITY_DATASET ?? 'production';
 
 export default defineConfig({
   // CHANGE THIS to your real domain before going live (used for sitemap + og:url).
@@ -9,4 +15,16 @@ export default defineConfig({
     routing: { prefixDefaultLocale: false },
   },
   image: { responsiveStyles: true },
+  output: 'static',
+  adapter: vercel(),
+  integrations: [
+    sanity({
+      projectId,
+      dataset,
+      apiVersion: '2024-10-01',
+      useCdn: true,
+      studioBasePath: '/studio',
+    }),
+    react(),
+  ],
 });

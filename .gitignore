@@ -1,7 +1,16 @@
 node_modules/
 dist/
 .astro/
+.vercel/
 .DS_Store
+
+# Env / Secrets
+.env
+.env.local
+.env.*.local
+
+# Sanity
+.sanity/
 
 # macOS
 .DS_Store
