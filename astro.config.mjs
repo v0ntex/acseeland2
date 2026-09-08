@@ -22,7 +22,9 @@ export default defineConfig({
       projectId,
       dataset,
       apiVersion: '2024-10-01',
-      useCdn: true,
+      // false = immer frische Daten. Beim Vercel-Build ist das billig,
+      // im Dev sieht man Studio-Aenderungen sofort nach Reload.
+      useCdn: false,
       studioBasePath: '/studio',
     }),
     react(),

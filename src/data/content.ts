@@ -95,9 +95,12 @@ const SITE_FALLBACK: SiteData = {
   },
 };
 
+/* Cache nur im Build (Produktion). Im Dev-Server wuerde ein Modul-Level Cache
+   Studio-Aenderungen bis zum Server-Neustart verstecken. */
+const CACHE_ENABLED = import.meta.env.PROD;
 let __siteCache: SiteData | null = null;
 export async function getSite(): Promise<SiteData> {
-  if (__siteCache) return __siteCache;
+  if (CACHE_ENABLED && __siteCache) return __siteCache;
   const raw = await sanityClient
     .fetch<Record<string, unknown> | null>(`*[_id == "siteSettings"][0]`)
     .catch(() => null);
