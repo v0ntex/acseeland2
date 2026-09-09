@@ -191,6 +191,10 @@ export const ui = {
     'form.errorEmail': 'Bitte geben Sie eine gültige E-Mail-Adresse ein.',
     'form.errorSummary': 'Bitte korrigieren Sie die folgenden Angaben:',
     'form.opensMail': 'Das Formular öffnet Ihr E-Mail-Programm mit der fertigen Nachricht.',
+    'form.sending': 'Wird gesendet …',
+    'form.success': 'Vielen Dank — Ihre Nachricht ist bei uns eingegangen. Wir melden uns umgehend.',
+    'form.errorSend': 'Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es erneut oder schreiben Sie direkt an info@autocenterseeland.ch.',
+    'form.website': 'Website (bitte leer lassen)',
 
     'footer.nav': 'Navigation',
     'footer.contact': 'Kontakt',
@@ -375,6 +379,10 @@ export const ui = {
     'form.errorEmail': 'Please enter a valid email address.',
     'form.errorSummary': 'Please correct the following:',
     'form.opensMail': 'This form opens your email programme with the message ready to send.',
+    'form.sending': 'Sending …',
+    'form.success': 'Thank you — your message has reached us. We will get back to you shortly.',
+    'form.errorSend': 'Your message could not be sent. Please try again or email us directly at info@autocenterseeland.ch.',
+    'form.website': 'Website (please leave blank)',
 
     'footer.nav': 'Navigation',
     'footer.contact': 'Contact',

@@ -1,37 +1,36 @@
 ---
 import Icon from './Icon.astro';
 import { useTranslations } from '../i18n/utils';
-import { getSite } from '../data/content';
-import { formEndpoint } from '../data/config';
 import type { Lang } from '../i18n/ui';
 
 interface Props {
   lang: Lang;
-  /** 'contact' = general message · 'sourcing' = wanted-vehicle brief */
+  /** 'contact' = allgemeine Nachricht · 'sourcing' = Wunschfahrzeug */
   variant?: 'contact' | 'sourcing';
-  /** Pre-fills the subject, used on vehicle detail pages */
+  /** Vorbelegt bei Fahrzeug-Detailseiten */
   subject?: string;
   id?: string;
 }
 const { lang, variant = 'contact', subject = '', id = 'contact-form' } = Astro.props;
 const t = useTranslations(lang);
 const sourcing = variant === 'sourcing';
-const site = await getSite();
+const apiVariant = sourcing ? 'sourcing' : subject ? 'enquiry' : 'contact';
 ---
-<form
-  class="acs-form"
-  id={id}
-  novalidate
-  data-variant={variant}
-  data-email={site.email}
-  data-endpoint={formEndpoint ?? ''}
-  action={formEndpoint ?? undefined}
-  method={formEndpoint ? 'POST' : undefined}
->
+<form class="acs-form" id={id} novalidate data-variant={apiVariant}>
   <!-- Error summary: focused after a failed submit, links to each bad field -->
   <div class="form-summary" id={`${id}-summary`} role="alert" tabindex="-1" hidden>
     <p class="form-summary__title">{t('form.errorSummary')}</p>
     <ul class="form-summary__list"></ul>
+  </div>
+
+  <!-- Erfolgs- und Fehler-Feedback nach Submit -->
+  <div class="form-status form-status--success" id={`${id}-success`} role="status" hidden>
+    <Icon name="check" size={20} />
+    <p>{t('form.success')}</p>
+  </div>
+  <div class="form-status form-status--error" id={`${id}-error`} role="alert" hidden>
+    <Icon name="x" size={20} />
+    <p>{t('form.errorSend')}</p>
   </div>
 
   <div class="form-grid">
@@ -92,14 +91,19 @@ const site = await getSite();
       </p>
       <p class="field-err" id={`${id}-message-err`} hidden></p>
     </div>
+
+    <!-- Honeypot: unsichtbar für Menschen, Bots füllen es aus → Submit wird ignoriert -->
+    <div class="field field--hp" aria-hidden="true">
+      <label for={`${id}-website`}>{t('form.website')}</label>
+      <input type="text" id={`${id}-website`} name="website" tabindex="-1" autocomplete="off" />
+    </div>
   </div>
 
   <div class="form-foot">
-    <button type="submit" class="btn btn--red">
-      {sourcing ? t('form.submitEnquiry') : t('form.submit')}
+    <button type="submit" class="btn btn--red" data-label-idle={sourcing ? t('form.submitEnquiry') : t('form.submit')} data-label-sending={t('form.sending')}>
+      <span class="btn__label">{sourcing ? t('form.submitEnquiry') : t('form.submit')}</span>
       <Icon name="arrow-right" size={17} />
     </button>
-    {!formEndpoint && <p class="form-note">{t('form.opensMail')}</p>}
   </div>
 
   <!-- Strings the script needs, kept out of the markup flow -->
@@ -112,6 +116,8 @@ const site = await getSite();
   .form-grid { display: grid; gap: var(--space-m); }
   @media (min-width: 640px) { .form-grid { grid-template-columns: repeat(2, 1fr); } }
   .field--full { grid-column: 1 / -1; }
+  /* Honeypot ist off-screen aber assistive tech unsichtbar */
+  .field--hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 
   .field { display: grid; gap: 0.45rem; }
   .field label {
@@ -125,13 +131,13 @@ const site = await getSite();
 
   .field input, .field textarea {
     width: 100%;
-    min-height: 3rem;                    /* ≥44px touch target */
+    min-height: 3rem;
     padding: 0.8rem 1rem;
     background: var(--bg-raised);
     border: 1px solid var(--line);
     border-radius: var(--radius);
     color: var(--text);
-    font-size: 1rem;                     /* 16px — stops iOS zooming on focus */
+    font-size: 1rem;
     transition: border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
   }
   .field textarea { resize: vertical; line-height: 1.6; }
@@ -147,7 +153,6 @@ const site = await getSite();
 
   .field-hint { font-size: var(--step--1); color: var(--text-subtle); line-height: 1.5; }
 
-  /* Errors carry an icon + text, never colour alone */
   .field-err {
     display: flex;
     align-items: flex-start;
@@ -172,8 +177,31 @@ const site = await getSite();
   .form-summary__list a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; font-size: var(--step--1); }
   .form-summary__list a:hover { color: var(--acs-red); }
 
+  .form-status {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7em;
+    padding: var(--space-s) var(--space-m);
+    border: 1px solid var(--line);
+    border-left-width: 3px;
+    border-radius: var(--radius);
+    font-size: var(--step--1);
+    line-height: 1.55;
+  }
+  .form-status[hidden] { display: none; }
+  .form-status--success { border-left-color: #22c55e; background: rgba(34, 197, 94, 0.08); }
+  .form-status--success svg { color: #22c55e; flex: none; margin-top: 0.15em; }
+  .form-status--error { border-left-color: var(--acs-red); background: rgba(254, 51, 53, 0.08); }
+  .form-status--error svg { color: var(--acs-red); flex: none; margin-top: 0.15em; }
+
   .form-foot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-s); }
-  .form-note { font-size: var(--step--1); color: var(--text-subtle); max-width: 34ch; }
+
+  /* Loading-Zustand am Button */
+  .acs-form.is-sending button[type='submit'] {
+    opacity: 0.7;
+    cursor: progress;
+    pointer-events: none;
+  }
 </style>
 
 <script>
@@ -183,10 +211,17 @@ const site = await getSite();
     const MSG_EMAIL = strings.dataset.msgEmail!;
     const summary = form.querySelector<HTMLElement>('.form-summary')!;
     const summaryList = summary.querySelector('ul')!;
-    const endpoint = form.dataset.endpoint || '';
-    const to = form.dataset.email!;
+    const successBox = form.querySelector<HTMLElement>('.form-status--success')!;
+    const errorBox = form.querySelector<HTMLElement>('.form-status--error')!;
+    const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const btnLabel = submitBtn.querySelector<HTMLElement>('.btn__label')!;
+    const labelIdle = submitBtn.dataset.labelIdle ?? btnLabel.textContent ?? '';
+    const labelSending = submitBtn.dataset.labelSending ?? 'Sending …';
 
-    const fields = () => [...form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input, textarea')];
+    const fields = () =>
+      [...form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input, textarea')].filter(
+        (f) => f.name !== 'website',
+      );
 
     const errorFor = (f: HTMLInputElement | HTMLTextAreaElement): string | null => {
       const value = f.value.trim();
@@ -199,14 +234,19 @@ const site = await getSite();
       const box = document.getElementById(`${f.id}-err`);
       if (msg) {
         f.setAttribute('aria-invalid', 'true');
-        if (box) { box.textContent = msg; box.hidden = false; }
+        if (box) {
+          box.textContent = msg;
+          box.hidden = false;
+        }
       } else {
         f.removeAttribute('aria-invalid');
-        if (box) { box.textContent = ''; box.hidden = true; }
+        if (box) {
+          box.textContent = '';
+          box.hidden = true;
+        }
       }
     };
 
-    /* Validate on blur, then keep correcting live once a field has errored. */
     fields().forEach((f) => {
       f.addEventListener('blur', () => showError(f, errorFor(f)));
       f.addEventListener('input', () => {
@@ -214,7 +254,13 @@ const site = await getSite();
       });
     });
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Reset Feedback-Boxen
+      successBox.hidden = true;
+      errorBox.hidden = true;
+
       const bad: { field: HTMLElement; msg: string }[] = [];
       fields().forEach((f) => {
         const msg = errorFor(f);
@@ -223,15 +269,19 @@ const site = await getSite();
       });
 
       if (bad.length) {
-        e.preventDefault();
         summaryList.innerHTML = '';
         for (const { field, msg } of bad) {
-          const label = form.querySelector(`label[for="${field.id}"]`)?.textContent?.replace('*', '').trim() ?? field.id;
+          const label =
+            form.querySelector(`label[for="${field.id}"]`)?.textContent?.replace('*', '').trim() ??
+            field.id;
           const li = document.createElement('li');
           const a = document.createElement('a');
           a.href = `#${field.id}`;
           a.textContent = `${label}: ${msg}`;
-          a.addEventListener('click', (ev) => { ev.preventDefault(); field.focus(); });
+          a.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            field.focus();
+          });
           li.appendChild(a);
           summaryList.appendChild(li);
         }
@@ -241,32 +291,42 @@ const site = await getSite();
       }
 
       summary.hidden = true;
-      if (endpoint) return; // real POST endpoint handles it
 
-      /* No backend configured: hand the message to the user's mail client. */
-      e.preventDefault();
+      // Payload für POST /api/contact zusammenbauen
       const data = new FormData(form);
-      const get = (k: string) => String(data.get(k) ?? '').trim();
-      const sourcing = form.dataset.variant === 'sourcing';
+      const payload: Record<string, string> = { variant: form.dataset.variant ?? 'contact' };
+      for (const [key, value] of data.entries()) {
+        payload[key] = String(value).trim();
+      }
 
-      const subject = sourcing
-        ? `Fahrzeuganfrage / Vehicle request — ${get('make')} ${get('model')}`.trim()
-        : get('subject') || 'Website — Kontakt / Contact';
+      form.classList.add('is-sending');
+      btnLabel.textContent = labelSending;
 
-      const lines = [
-        `Name: ${get('name')}`,
-        `E-Mail: ${get('email')}`,
-        get('phone') && `Telefon: ${get('phone')}`,
-        sourcing && `Marke: ${get('make')}`,
-        sourcing && get('model') && `Modell: ${get('model')}`,
-        sourcing && get('budget') && `Budget: CHF ${get('budget')}`,
-        sourcing && get('timeframe') && `Zeitrahmen: ${get('timeframe')}`,
-        '',
-        get('message'),
-      ].filter(Boolean);
+      try {
+        const res = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const json = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
 
-      window.location.href =
-        `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join('\n'))}`;
+        if (res.ok && json.ok) {
+          successBox.hidden = false;
+          successBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          form.reset();
+        } else {
+          errorBox.hidden = false;
+          errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          console.error('Form error:', json.error);
+        }
+      } catch (err) {
+        errorBox.hidden = false;
+        errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        console.error('Network error:', err);
+      } finally {
+        form.classList.remove('is-sending');
+        btnLabel.textContent = labelIdle;
+      }
     });
   });
 </script>
